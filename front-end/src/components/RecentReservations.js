@@ -33,7 +33,7 @@ const RecentReservations = () => {
 
   const handleDeleteReservation = async (id) => {
     try {
-      await axios.delete(`http://localhost:5001/reservations/${id}`);
+      await axios.delete(`https://finalcapistone-1.onrender.com/reservations/${id}`);
 
       const updatedReservations = reservations.data.filter(
         (reservation) => reservation.reservation_id !== id
@@ -88,7 +88,7 @@ const handleEditSubmit = async (event) => {
     };
      console.log(updatedData)
     const response = await axios.put(
-      `http://localhost:5001/reservations/${editedReservation.data.reservation_id}`,
+      `https://finalcapistone-1.onrender.com/reservations/${editedReservation.data.reservation_id}`,
       updatedData
     );
 
