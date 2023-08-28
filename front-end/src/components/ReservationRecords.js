@@ -13,7 +13,7 @@ function ReservationRecords() {
   useEffect(() => {
     async function fetchReservations() {
       try {
-        const response = await axios.get("http://localhost:5001/reservations");
+        const response = await axios.get("https://finalcapistone-1.onrender.com/reservations");
         setReservations(response.data.data.reverse());
       } catch (error) {
         console.error("Error fetching reservations:", error);

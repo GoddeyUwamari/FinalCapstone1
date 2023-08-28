@@ -19,7 +19,7 @@ function UserManagement() {
       setError(null); // Clear any previous error
       setSearching(true);
       const response = await axios.get(
-        `http://localhost:5001/reservations/${fullName}/${phoneNumber}`
+        `https://finalcapistone-1.onrender.com/reservations/${fullName}/${phoneNumber}`
       );
       setSearchResults(response.data.data);
       setSearching(false);

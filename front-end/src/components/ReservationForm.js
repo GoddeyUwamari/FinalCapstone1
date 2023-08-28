@@ -64,7 +64,7 @@ const ReservationForm = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5001/reservations",
+        "https://finalcapistone-1.onrender.com/reservations",
         {
           ...formData,
           number_of_guest: guests,
