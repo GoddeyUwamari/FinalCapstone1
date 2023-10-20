@@ -1,33 +1,37 @@
 // Routes.js
 import React from "react";
-import { Route, Switch } from "react-router-dom";
-import UserManagement from "../components/UserMangement";
-import Reservation from "../pages/Reservation";
-import Rooms from "../pages/Rooms";
-import AdminLayout from "./AdminLayout";
 import NotFound from "./NotFound";
+import Layout from "./Layout/Layout";
+import { Navigate, useRoutes } from "react-router";
+import Dashboard from "../pages/Dashboard";
+import { dashboardPagePath, reservationPagePath } from "../data/pageRoutes";
+import Reservations from "../pages/Reservations";
 
-function Routes() {
-  return (
-    <Switch>
-      <Route exact path="/">
-        <Reservation />
-      </Route>
-      <Route path="/rooms">
-        <Rooms />
-      </Route>
-      <Route path="/admin">
-        <AdminLayout />
-      </Route>
-      <Route path="/user-management">
-        <UserManagement />
-      </Route>
-
-      <Route>
-        <NotFound />
-      </Route>
-    </Switch>
-  );
-}
+const Routes = () => {
+  return useRoutes([
+    {
+      element: <Layout />,
+      children: [
+        {
+          path: dashboardPagePath,
+          element: <Dashboard />,
+          index: true,
+        },
+        {
+          element: <Dashboard />,
+          path: dashboardPagePath,
+        },
+        {
+          element: <Reservations />,
+          path: reservationPagePath,
+        },
+      ],
+    },
+    {
+      path: "/*",
+      element: <NotFound />,
+    },
+  ]);
+};
 
 export default Routes;

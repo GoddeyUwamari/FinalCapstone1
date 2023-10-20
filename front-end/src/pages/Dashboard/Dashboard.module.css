@@ -1,0 +1,33 @@
+.Dashboard {
+  padding-bottom: 150px;
+}
+
+.Dashboard_content {
+  margin-top: 32px;
+}
+
+.Dashboard_content_title,
+.Dashboard_table_title {
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 28px;
+  letter-spacing: -0.1px;
+  margin-bottom: 24px;
+}
+
+.Dashboard_table {
+  max-width: 550px;
+  margin-top: 32px;
+}
+
+.Dashboard_table_btn {
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #fff;
+  background-color: #83092e;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  margin-top: 12px;
+}

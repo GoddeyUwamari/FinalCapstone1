@@ -1,0 +1,59 @@
+.Sidebar {
+  position: fixed;
+  width: 250px;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  border-right: 1.5px solid #b3b2b2;
+  padding: 32px 24px;
+}
+
+.Sidebar_brand {
+  margin-bottom: 32px;
+}
+
+.Sidebar_brand_title {
+  font-size: 48px;
+  font-weight: 600;
+  line-height: 64px;
+  letter-spacing: -1.21px;
+  color: #83092e;
+}
+
+.Sidebar_brand_text {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.12px;
+}
+
+.Sidebar_links {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.Sidebar_links_item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.Sidebar_links_item > svg {
+  width: 20px;
+  height: 20px;
+}
+
+.Sidebar_links_item > span {
+  font-size: 13px;
+  line-height: 20px;
+  letter-spacing: -0.12px;
+}
+
+.Sidebar_links_item_active {
+  color: #83092e;
+}
+
+.Sidebar_links_item_active > svg {
+  fill: #83092e;
+}
