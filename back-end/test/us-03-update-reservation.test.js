@@ -1,8 +1,9 @@
 const request = require("supertest");
+
 const app = require("../src/app");
 const knex = require("../src/db/connection");
 
-describe("Update Reservation API Endpoint", () => {
+describe("US-03 - Create reservations eligible timeframe", () => {
   beforeAll(() => {
     return knex.migrate
       .forceFreeMigrationsLock()
@@ -18,75 +19,43 @@ describe("Update Reservation API Endpoint", () => {
     return await knex.migrate.rollback(null, true).then(() => knex.destroy());
   });
 
-  // Increase the timeout for these tests
-  jest.setTimeout(30000); // Set the timeout to 30 seconds
+  describe("POST /reservations", () => {
+    test("returns 400 if reservation_time is not available", async () => {
+      const data = {
+        first_name: "first",
+        last_name: "last",
+        mobile_number: "800-555-1212",
+        reservation_date: "2050-01-05",
+        reservation_time: "09:30",
+        people: 3,
+      };
 
-  test("updates a reservation if data is valid", async () => {
-    // Insert a test reservation into the database
-    const testReservation = {
-      full_name: "Test Reservation",
-      email: "test@example.com",
-      phone_number: "1234567890",
-      checkIn_date: "2023-08-24",
-      checkOut_date: "2023-08-29",
-      type_of_room: "Standard",
-      number_of_guest: 1,
-      number_of_rooms: 1,
-    };
-    const [createdReservation] = await knex("reservations")
-      .insert(testReservation)
-      .returning("*");
+      let response = await request(app)
+        .post("/reservations")
+        .set("Accept", "application/json")
+        .send({ data });
+      expect(response.status).toBe(400);
 
-    // Prepare the updated reservation data
-    const updatedReservation = {
-      full_name: "Updated Name",
-      email: "updated@example.com",
-      phone_number: "9876543210",
-      checkIn_date: "2023-09-01",
-      checkOut_date: "2023-09-05",
-      type_of_room: "Suite",
-      number_of_guest: 2,
-      number_of_rooms: 2,
-    };
+      data.reservation_time = "23:30";
+      response = await request(app)
+        .post("/reservations")
+        .set("Accept", "application/json")
+        .send({ data });
+      expect(response.status).toBe(400);
 
-    // Make a request to update the reservation
-    const response = await request(app)
-      .put(`/reservations/${createdReservation.reservation_id}`)
-      .send(updatedReservation);
+      data.reservation_time = "22:45";
+      response = await request(app)
+        .post("/reservations")
+        .set("Accept", "application/json")
+        .send({ data });
+      expect(response.status).toBe(400);
 
-    // Check if the response status is 200 OK
-    expect(response.status).toBe(200);
-
-    // Check if the response body contains the updated reservation data
-    expect(response.body.data).toBeDefined();
-    expect(response.body.data.full_name).toBe(updatedReservation.full_name);
-    expect(response.body.data.email).toBe(updatedReservation.email);
-    // Additional assertions based on data
-    // ...
-  });
-
-  test("returns an error if reservation with ID does not exist", async () => {
-    // Prepare the updated reservation data
-    const updatedReservation = {
-      full_name: "Updated Name",
-      email: "updated@example.com",
-      phone_number: "9876543210",
-      checkIn_date: "2023-09-01",
-      checkOut_date: "2023-09-05",
-      type_of_room: "Suite",
-      number_of_guest: 2,
-      number_of_rooms: 2,
-    };
-
-    // Make a request to update a reservation with a non-existing ID
-    const response = await request(app)
-      .put("/reservations/12345")
-      .send(updatedReservation);
-
-    // Check if the response status is 404 Not Found
-    expect(response.status).toBe(404);
-
-    // Check if the response body contains an error message
-    expect(response.body.error).toBe("Reservation not found");
+      data.reservation_time = "05:30";
+      response = await request(app)
+        .post("/reservations")
+        .set("Accept", "application/json")
+        .send({ data });
+      expect(response.status).toBe(400);
+    });
   });
 });

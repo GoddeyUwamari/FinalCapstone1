@@ -1,12 +1,21 @@
 const router = require("express").Router();
 const controller = require("./reservations.controller");
 
+// Get the list of reservations
 router.route("/").get(controller.list);
-router.route("/").post(controller.create);
-router
-  .route("/:full_name/:phone_number/")
-  .get(controller.getByFullNameAndPhoneNumber);
-router.route("/:reservation_id").put(controller.update);
-router.route("/:reservation_id").delete(controller.remove); // Add the delete route
-router.route("/:id").get(controller.getById);
+
+// Get reservation by reservation_id
+router.route("/:reservation_id").get(controller.getReservationById);
+
+// Add reservation
+router.route("/").post(controller.createReservation);
+
+// Edit reservation
+router.route("/:reservation_id").put(controller.editReservation);
+
+// Delete reservation
+router.route("/:reservation_id").delete(controller.removeReservation);
+
+router.route("/:reservation_id/status").put(controller.updateStatus);
+
 module.exports = router;

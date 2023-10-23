@@ -3,7 +3,7 @@ const request = require("supertest");
 const app = require("../src/app");
 const knex = require("../src/db/connection");
 
-describe("US-01 - Create and list reservations", () => {
+describe("US-08 - Change an existing reservation", () => {
   beforeAll(() => {
     return knex.migrate
       .forceFreeMigrationsLock()
@@ -19,39 +19,61 @@ describe("US-01 - Create and list reservations", () => {
     return await knex.migrate.rollback(null, true).then(() => knex.destroy());
   });
 
-  describe("App", () => {
-    describe("not found handler", () => {
-      test("returns 404 for non-existent route", async () => {
-        const response = await request(app)
-          .get("/fastidious")
-          .set("Accept", "application/json");
+  describe("PUT /reservations/:reservation_id", () => {
+    test("returns 404 if reservation does not exist", async () => {
+      const data = {
+        first_name: "Mouse",
+        last_name: "Whale",
+        mobile_number: "1231231235",
+        reservation_date: "2026-12-30",
+        reservation_time: "18:00",
+        people: 2,
+      };
 
-        expect(response.status).toBe(404);
-        expect(response.body.error).toBe("Path not found: /fastidious");
-      });
-    });
-  });
-
-  describe("GET /reservations/:reservation_id", () => {
-    test("returns 404 for non-existent id", async () => {
       const response = await request(app)
-        .get("/reservations/99")
-        .set("Accept", "application/json");
+        .put("/reservations/999999")
+        .set("Accept", "application/json")
+        .send({ data });
 
-      expect(response.body.error).toContain("99");
+      expect(response.body.error).not.toBeUndefined();
       expect(response.status).toBe(404);
     });
-  });
 
-  describe("POST /reservations", () => {
-    test("returns 400 if data is missing", async () => {
+    test("updates the reservation", async () => {
+      const data = {
+        first_name: "Mouse",
+        last_name: "Whale",
+        mobile_number: "1231231235",
+        reservation_date: "2026-12-30",
+        reservation_time: "18:00",
+        people: 2,
+      };
+
+      const reservation = await knex("reservations")
+        .where("reservation_id", 1)
+        .first();
+
+      expect(reservation).not.toBeUndefined();
+
+      Object.entries(data).forEach(
+        ([key, value]) => (reservation[key] = value)
+      );
+
       const response = await request(app)
-        .post("/reservations")
+        .put("/reservations/1")
         .set("Accept", "application/json")
-        .send({ datum: {} });
+        .send({ data: reservation });
 
-      expect(response.body.error).toBeDefined();
-      expect(response.status).toBe(400);
+      expect(response.body.error).toBeUndefined();
+      expect(response.body.data).toEqual(
+        expect.objectContaining({
+          first_name: "Mouse",
+          last_name: "Whale",
+          mobile_number: "1231231235",
+          people: 2,
+        })
+      );
+      expect(response.status).toBe(200);
     });
 
     test("returns 400 if first_name is missing", async () => {
@@ -60,11 +82,11 @@ describe("US-01 - Create and list reservations", () => {
         mobile_number: "800-555-1212",
         reservation_date: "2025-01-01",
         reservation_time: "13:30",
-        people: 1,
+        people: 3,
       };
 
       const response = await request(app)
-        .post("/reservations")
+        .put("/reservations/1")
         .set("Accept", "application/json")
         .send({ data });
 
@@ -79,11 +101,11 @@ describe("US-01 - Create and list reservations", () => {
         mobile_number: "800-555-1212",
         reservation_date: "2025-01-01",
         reservation_time: "13:30",
-        people: 1,
+        people: 3,
       };
 
       const response = await request(app)
-        .post("/reservations")
+        .put("/reservations/1")
         .set("Accept", "application/json")
         .send({ data });
 
@@ -97,11 +119,11 @@ describe("US-01 - Create and list reservations", () => {
         mobile_number: "800-555-1212",
         reservation_date: "2025-01-01",
         reservation_time: "13:30",
-        people: 1,
+        people: 3,
       };
 
       const response = await request(app)
-        .post("/reservations")
+        .put("/reservations/1")
         .set("Accept", "application/json")
         .send({ data });
 
@@ -116,11 +138,11 @@ describe("US-01 - Create and list reservations", () => {
         mobile_number: "800-555-1212",
         reservation_date: "2025-01-01",
         reservation_time: "13:30",
-        people: 1,
+        people: 3,
       };
 
       const response = await request(app)
-        .post("/reservations")
+        .put("/reservations/1")
         .set("Accept", "application/json")
         .send({ data });
 
@@ -128,17 +150,17 @@ describe("US-01 - Create and list reservations", () => {
       expect(response.status).toBe(400);
     });
 
-    test("returns 400 if mobilePhone is missing", async () => {
+    test("returns 400 if mobile_phone is missing", async () => {
       const data = {
         first_name: "first",
         last_name: "last",
         reservation_date: "2025-01-01",
         reservation_time: "13:30",
-        people: 1,
+        people: 3,
       };
 
       const response = await request(app)
-        .post("/reservations")
+        .put("/reservations/1")
         .set("Accept", "application/json")
         .send({ data });
 
@@ -146,18 +168,18 @@ describe("US-01 - Create and list reservations", () => {
       expect(response.status).toBe(400);
     });
 
-    test("returns 400 if mobilePhone is empty", async () => {
+    test("returns 400 if mobile_phone is empty", async () => {
       const data = {
         first_name: "first",
         last_name: "last",
         mobile_number: "",
         reservation_date: "2025-01-01",
         reservation_time: "13:30",
-        people: 1,
+        people: 3,
       };
 
       const response = await request(app)
-        .post("/reservations")
+        .put("/reservations/1")
         .set("Accept", "application/json")
         .send({ data });
 
@@ -175,7 +197,7 @@ describe("US-01 - Create and list reservations", () => {
       };
 
       const response = await request(app)
-        .post("/reservations")
+        .put("/reservations/1")
         .set("Accept", "application/json")
         .send({ data });
 
@@ -194,14 +216,13 @@ describe("US-01 - Create and list reservations", () => {
       };
 
       const response = await request(app)
-        .post("/reservations")
+        .put("/reservations/1")
         .set("Accept", "application/json")
         .send({ data });
 
       expect(response.body.error).toContain("reservation_date");
       expect(response.status).toBe(400);
     });
-
     test("returns 400 if reservation_date is not a date", async () => {
       const data = {
         first_name: "first",
@@ -209,11 +230,11 @@ describe("US-01 - Create and list reservations", () => {
         mobile_number: "800-555-1212",
         reservation_date: "not-a-date",
         reservation_time: "13:30",
-        people: 1,
+        people: 2,
       };
 
       const response = await request(app)
-        .post("/reservations")
+        .put("/reservations/1")
         .set("Accept", "application/json")
         .send({ data });
 
@@ -227,18 +248,17 @@ describe("US-01 - Create and list reservations", () => {
         last_name: "last",
         mobile_number: "800-555-1212",
         reservation_date: "2025-01-01",
-        people: 1,
+        people: 2,
       };
 
       const response = await request(app)
-        .post("/reservations")
+        .put("/reservations/1")
         .set("Accept", "application/json")
         .send({ data });
 
       expect(response.body.error).toContain("reservation_time");
       expect(response.status).toBe(400);
     });
-
     test("returns 400 if reservation_time is empty", async () => {
       const data = {
         first_name: "first",
@@ -246,18 +266,17 @@ describe("US-01 - Create and list reservations", () => {
         mobile_number: "800-555-1212",
         reservation_date: "2025-01-01",
         reservation_time: "",
-        people: 1,
+        people: 2,
       };
 
       const response = await request(app)
-        .post("/reservations")
+        .put("/reservations/1")
         .set("Accept", "application/json")
         .send({ data });
 
       expect(response.body.error).toContain("reservation_time");
       expect(response.status).toBe(400);
     });
-
     test("returns 400 if reservation_time is not a time", async () => {
       const data = {
         first_name: "first",
@@ -265,11 +284,11 @@ describe("US-01 - Create and list reservations", () => {
         mobile_number: "800-555-1212",
         reservation_date: "2025-01-01",
         reservation_time: "not-a-time",
-        people: 1,
+        people: 2,
       };
 
       const response = await request(app)
-        .post("/reservations")
+        .put("/reservations/1")
         .set("Accept", "application/json")
         .send({ data });
 
@@ -287,7 +306,7 @@ describe("US-01 - Create and list reservations", () => {
       };
 
       const response = await request(app)
-        .post("/reservations")
+        .put("/reservations/1")
         .set("Accept", "application/json")
         .send({ data });
 
@@ -306,7 +325,7 @@ describe("US-01 - Create and list reservations", () => {
       };
 
       const response = await request(app)
-        .post("/reservations")
+        .put("/reservations/1")
         .set("Accept", "application/json")
         .send({ data });
 
@@ -325,60 +344,31 @@ describe("US-01 - Create and list reservations", () => {
       };
 
       const response = await request(app)
-        .post("/reservations")
+        .put("/reservations/1")
         .set("Accept", "application/json")
         .send({ data });
 
       expect(response.body.error).toContain("people");
       expect(response.status).toBe(400);
     });
-
-    test("returns 201 if data is valid", async () => {
-      const data = {
-        first_name: "first",
-        last_name: "last",
-        mobile_number: "800-555-1212",
-        reservation_date: "2025-01-01",
-        reservation_time: "17:30",
-        people: 2,
-      };
-
-      const response = await request(app)
-        .post("/reservations")
-        .set("Accept", "application/json")
-        .send({ data });
-
-      expect(response.body.error).toBeUndefined();
-      expect(response.body.data).toEqual(
-        expect.objectContaining({
-          first_name: "first",
-          last_name: "last",
-          mobile_number: "800-555-1212",
-          people: 2,
-        })
-      );
-      expect(response.status).toBe(201);
-    });
   });
 
-  describe("GET /reservations", () => {
-    test("returns only reservations matching date query parameter", async () => {
-      const response = await request(app)
-        .get("/reservations?date=2020-12-31")
-        .set("Accept", "application/json");
+  describe("PUT /reservations/:reservation_id/status", () => {
+    test("returns 200 for status cancelled", async () => {
+      const reservation = await knex("reservations")
+        .orderBy(["reservation_date", "reservation_time"])
+        .first();
 
-      expect(response.body.data).toHaveLength(1);
-      expect(response.body.data[0].first_name).toBe("Rick");
-      expect(response.status).toBe(200);
-    });
-    test("returns reservations sorted by time (earliest time first)", async () => {
-      const response = await request(app)
-        .get("/reservations?date=2020-12-30")
-        .set("Accept", "application/json");
+      expect(reservation).not.toBeUndefined();
 
-      expect(response.body.data).toHaveLength(2);
-      expect(response.body.data[0].first_name).toBe("Bird");
-      expect(response.body.data[1].first_name).toBe("Frank");
+      const status = "cancelled";
+
+      const response = await request(app)
+        .put(`/reservations/${reservation.reservation_id}/status`)
+        .set("Accept", "application/json")
+        .send({ data: { status } });
+
+      expect(response.body.data).toHaveProperty("status", status);
       expect(response.status).toBe(200);
     });
   });
