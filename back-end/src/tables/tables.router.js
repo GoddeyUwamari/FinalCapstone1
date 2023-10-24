@@ -13,7 +13,7 @@ router.route("/").post(controller.createTable);
 // Update table
 router
   .route("/:table_id/seat")
-  .put(controller.updateTable)
+  .put(controller.updateTableStatus)
   .delete(controller.finishTable);
 
 module.exports = router;

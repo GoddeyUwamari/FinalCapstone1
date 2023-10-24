@@ -9,32 +9,6 @@ const list = async (req, res) => {
   res.status(200).json({ data: result });
 };
 
-const tableExists = async (req, res, next) => {
-  const { table_id } = req.params;
-  const table = await service.getById(table_id);
-  if (!table) {
-    next({
-      status: 404,
-      message: `Table ${table_id} does not exist`,
-    });
-  }
-  res.locals.table = table;
-  next();
-};
-
-const reservationExists = async (req, res, next) => {
-  const { reservation_id } = req.body.data;
-  const reservation = await getReservationById(reservation_id);
-  if (reservation) {
-    res.locals.reservation = reservation;
-    return next();
-  }
-  return next({
-    status: 404,
-    message: `Reservation ${reservation_id} not found.`,
-  });
-};
-
 const createTable = async (req, res, next) => {
   try {
     const results = validationResult(req.body);
@@ -60,38 +34,52 @@ const createTable = async (req, res, next) => {
   }
 };
 
-const tableStatus = (req, res, next) => {
-  const { reservation_id } = res.locals.table;
-  if (!reservation_id) {
+const tableExists = async (table_id, next) => {
+  const table = await service.getById(table_id);
+  if (!table) {
     next({
-      status: 400,
-      message: "Table is not occupied.",
-    });
-  }
-
-  if (reservation_id) {
-    next({
-      status: 400,
-      message: "Table is occupied.",
+      status: 404,
+      message: `Table ${table_id} does not exist`,
     });
   }
   next();
 };
 
-const reservationStatus = (req, res, next) => {
-  const { status } = res.locals.reservation;
-  if (status === "seated") {
-    return next({
+const validateStatus = (status, next) => {
+  const statusType = ["booked", "seated", "finished", "cancelled"];
+  if (statusType.includes(status)) {
+    next();
+  } else {
+    next({
       status: 400,
-      message: "Reservation is already seated.",
+      message: "Invalid status",
     });
   }
+};
+
+const checkReservation = async (reservation_id, next) => {
+  const reservation = await getReservationById(reservation_id);
+  if (!reservation)
+    next({
+      status: 404,
+      message: `Reservation ${reservation_id} not found.`,
+    });
+
+  validateStatus(reservation.status, next);
+
   next();
 };
 
-const updateTable = async (req, res) => {
+const updateTableStatus = async (req, res) => {
   const { table_id } = req.params;
+
   const { reservation_id } = req.body.data;
+
+  //checks if table exists
+  tableExists(table_id, next);
+
+  //checks if resevation exist
+  checkReservation(reservation_id, next);
 
   const data = await service.update(table_id, reservation_id);
   res.json({ data });
@@ -100,6 +88,12 @@ const updateTable = async (req, res) => {
 const finishTable = async (req, res) => {
   const { table_id } = req.params;
   const { reservation_id } = req.body.data;
+
+  //checks if table exists
+  tableExists(table_id, next);
+
+  //checks if resevation exist
+  checkReservation(reservation_id, next);
 
   const data = await service.finish(table_id, reservation_id);
   res.json({ data });
@@ -112,21 +106,8 @@ const getTableById = async (req, res) => {
 
 module.exports = {
   list: asyncErrorBoundary(list),
-  createTable: [
-    asyncErrorBoundary(tableExists),
-    asyncErrorBoundary(createTable),
-  ],
-  updateTable: [
-    asyncErrorBoundary(tableExists),
-    asyncErrorBoundary(reservationExists),
-    tableStatus(),
-    reservationStatus(),
-    asyncErrorBoundary(updateTable),
-  ],
-  finishTable: [
-    asyncErrorBoundary(tableExists),
-    tableStatus,
-    asyncErrorBoundary(finishTable),
-  ],
+  createTable: asyncErrorBoundary(createTable),
+  updateTableStatus: asyncErrorBoundary(updateTableStatus),
+  finishTable: asyncErrorBoundary(finishTable),
   getTableById: asyncErrorBoundary(getTableById),
 };
