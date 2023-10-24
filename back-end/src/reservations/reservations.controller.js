@@ -26,6 +26,18 @@ const handleTimeValidation = (time, next) => {
     });
 };
 
+const validateStatus = (status, next) => {
+  const statusType = ["booked", "seated", "finished", "cancelled"];
+  if (statusType.includes(status)) {
+    next();
+  } else {
+    next({
+      status: 400,
+      message: "Invalid status",
+    });
+  }
+};
+
 // List all reservations
 // List reservations by date or mobile number
 async function list(req, res, next) {
@@ -179,14 +191,9 @@ async function removeReservation(req, res, next) {
 
 async function updateStatus(req, res, next) {
   try {
-    const { status } = req.body.data;
-    if (
-      status === "booked" ||
-      status === "seated" ||
-      status === "finished" ||
-      status === "cancelled"
-    )
-      next();
+    const { status, reservation_id } = req.params;
+
+    validateStatus(status, next);
 
     if (!reservation_id)
       next({ status: 400, message: `Invalid reservation id` });
