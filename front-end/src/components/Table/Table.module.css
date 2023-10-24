@@ -53,9 +53,11 @@ th {
   width: max-content;
   display: none;
   z-index: 10;
+  flex-direction: column;
 }
 
-.Table_body_dropdown_item {
+.Table_body_dropdown > a,
+.Table_body_dropdown > span {
   width: 100%;
   padding: 10px;
   cursor: pointer;
@@ -66,13 +68,15 @@ th {
   color: #575757;
   line-height: 20px;
   letter-spacing: -0.12px;
+  text-decoration: none;
 }
 
 .Table_body_option:hover .Table_body_dropdown {
-  display: block;
+  display: flex;
 }
 
-.Table_body_dropdown_item:hover {
+.Table_body_dropdown > a:hover,
+.Table_body_dropdown > span:hover {
   background-color: #c3c3c3;
 }
 

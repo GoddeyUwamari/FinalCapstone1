@@ -1,7 +1,7 @@
 import React from "react";
 import { uniqueId } from "lodash";
 import { VscBook } from "react-icons/vsc";
-import { BiDotsVerticalRounded, BiCheck } from "react-icons/bi";
+import { BiDotsVerticalRounded } from "react-icons/bi";
 
 import styles from "./Table.module.css";
 
@@ -12,10 +12,10 @@ const Table = ({ data, dataSchema, actions }) => {
     actions.filter((action) => {
       if (action.handleVisibility) {
         const isVisible = action.handleVisibility(row);
-        return !isVisible;
+        return !!isVisible;
       }
 
-      return true;
+      return false;
     });
 
   return (
@@ -45,34 +45,21 @@ const Table = ({ data, dataSchema, actions }) => {
                         <BiDotsVerticalRounded
                           className={styles.Table_body_option_icon}
                         />
-                        <ul className={styles.Table_body_dropdown}>
+                        <div className={styles.Table_body_dropdown}>
                           {actions.map((action) => {
-                            const testId =
-                              action.addTestId && action.addTestId(item)
-                                ? action.addTestId(item)
-                                : "";
                             const isVisible = action.handleVisibility
-                              ? !action.handleVisibility(item)
-                              : true;
+                              ? action.handleVisibility(item)
+                              : false;
+
                             return (
                               <React.Fragment key={uniqueId("table-action_")}>
-                                {isVisible ? (
-                                  <li
-                                    onClick={() => action.onClick(item)}
-                                    className={styles.Table_body_dropdown_item}
-                                    {...testId}
-                                  >
-                                    {action.label}
-                                  </li>
-                                ) : null}
+                                {isVisible ? action.render(item) : null}
                               </React.Fragment>
                             );
                           })}
-                        </ul>
+                        </div>
                       </>
-                    ) : (
-                      <BiCheck className={styles.Table_body_option_icon} />
-                    )}
+                    ) : null}
                   </td>
                 ) : null}
               </tr>

@@ -1,11 +1,9 @@
 import React from "react";
-import { Search, Table } from "../../components";
+import { Table } from "../../components";
 import { RESERVATION_MOCK_DATA, TABLE_MOCK_DATA } from "../../data/mockData";
 import {
   AddReservationModal,
   CheckoutModal,
-  UpdateStatusModal,
-  AssignSeatModal,
   CancelReservationModal,
   CreateTableModal,
 } from "../../modals";
@@ -16,13 +14,18 @@ import {
 } from "../../data/tableConfig";
 
 import styles from "./Dashboard.module.css";
+import { next, previous } from "../../utils/date-time";
+import { format } from "date-fns";
 
 const Dashboard = () => {
+  const currentDate = format(new Date(), "yyyy-MM-dd");
+
   const initialState = {
     openModal: false,
     modalType: null,
     activeReservation: null,
     activeTableId: null,
+    date: currentDate,
   };
 
   const [state, setState] = React.useState(initialState);
@@ -30,11 +33,9 @@ const Dashboard = () => {
   const handleStateUpdate = (newState) =>
     setState((state) => ({ ...state, ...newState }));
 
-  const currentDate = new Date().setHours(0, 0, 0, 0);
-
   const reservationsData = RESERVATION_MOCK_DATA.filter(
     (item) =>
-      new Date(item.reservation_date).setHours(0, 0, 0, 0) === currentDate
+      format(new Date(item.reservation_date), "yyyy-MM-dd") === state.date
   );
 
   const reservationsDataSchema = getReservationsDataSchema();
@@ -43,10 +44,13 @@ const Dashboard = () => {
 
   const tableDataSchema = getTableDataSchema(handleStateUpdate);
 
+  const handleDateUpdate = (type) => {
+    if (type === "next") handleStateUpdate({ date: next(state.date) });
+    if (type === "prev") handleStateUpdate({ date: previous(state.date) });
+  };
+
   return (
     <section className={styles.Dashboard}>
-      <Search />
-
       <div className={styles.Dashboard_content}>
         <h1 className={styles.Dashboard_content_title}>Reservations</h1>
         <Table
@@ -54,6 +58,10 @@ const Dashboard = () => {
           dataSchema={reservationsDataSchema}
           actions={reservationsActions}
         />
+        <div className={styles.Dashboard_content_btns}>
+          <button onClick={() => handleDateUpdate("prev")}>Prev</button>
+          <button onClick={() => handleDateUpdate("next")}>Next</button>
+        </div>
       </div>
 
       <div className={styles.Dashboard_table}>
@@ -85,15 +93,6 @@ const Dashboard = () => {
         }
       />
 
-      <AssignSeatModal
-        reservation_id={state.activeReservation?.reservation_id}
-        tables={TABLE_MOCK_DATA}
-        show={state.openModal && state.modalType === "assign-seat"}
-        handleClose={() =>
-          handleStateUpdate({ openModal: false, modalType: null })
-        }
-      />
-
       <CancelReservationModal
         reservation={state.activeReservation}
         show={state.openModal && state.modalType === "cancel"}
@@ -105,14 +104,6 @@ const Dashboard = () => {
       <CheckoutModal
         table_id={state.activeTableId}
         show={state.openModal && state.modalType === "finished"}
-        handleClose={() =>
-          handleStateUpdate({ openModal: false, modalType: null })
-        }
-      />
-
-      <UpdateStatusModal
-        data={state.activeReservation}
-        show={state.openModal && state.modalType === "status"}
         handleClose={() =>
           handleStateUpdate({ openModal: false, modalType: null })
         }

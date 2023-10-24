@@ -1,8 +1,9 @@
-.AssignSeatModal {
+.AssignSeat {
   width: 457px;
+  margin: 60px auto;
 }
 
-.AssignSeatModal_title {
+.AssignSeat_title {
   font-size: 24px;
   font-weight: 500;
   line-height: 28px;
@@ -12,11 +13,11 @@
   border-bottom: 1px solid #c6c6c6;
 }
 
-.AssignSeatModal_form {
+.AssignSeat_form {
   padding: 14px 24px;
 }
 
-.AssignSeatModal_form_label {
+.AssignSeat_form_label {
   width: 100%;
   font-size: 14px;
   font-weight: 500;
@@ -24,7 +25,7 @@
   letter-spacing: -0.12px;
 }
 
-.AssignSeatModal_form_select {
+.AssignSeat_form_select {
   width: 100%;
   border: 1px solid #a7a7a7;
   border-radius: 4px;
@@ -34,7 +35,13 @@
   font-size: 14px;
 }
 
-.AssignSeatModal_form_btn {
+.AssignSeat_form_btns {
+  display: flex;
+  gap: 24px;
+}
+
+.AssignSeat_form_btns_cancel,
+.AssignSeat_form_btns_action {
   width: 100%;
   margin-top: 48px;
   border: none;
@@ -47,11 +54,15 @@
   font-weight: 500;
 }
 
-.AssignSeatModal_form_btn:hover {
+.AssignSeat_form_btns_cancel {
+  background-color: #a7a7a7;
+}
+
+.AssignSeat_form_btns_action:hover {
   opacity: 0.9;
 }
 
-.AssignSeatModal_form_btn:disabled {
+.AssignSeat_form_btns_action:disabled {
   cursor: not-allowed;
   background-color: #a7a7a7;
 }

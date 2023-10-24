@@ -56,7 +56,7 @@ export const RESERVATION_MOCK_DATA = [
     mobile_number: "202-555-0164",
     status: "seated",
     people: "2",
-    reservation_date: "2023-10-20",
+    reservation_date: "2023-10-24",
     reservation_time: "12:30",
   },
 ];

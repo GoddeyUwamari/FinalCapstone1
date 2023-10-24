@@ -1,8 +1,17 @@
 import React from "react";
+
 import Dashboard from "../pages/Dashboard";
 import Reservations from "../pages/Reservations";
+import Search from "../pages/Search";
+
 import { VscBook, VscHome } from "react-icons/vsc";
-import { dashboardPagePath, reservationPagePath } from "./pageRoutes";
+import { MdOutlineManageSearch } from "react-icons/md";
+
+import {
+  dashboardPagePath,
+  reservationPagePath,
+  searchPagePath,
+} from "./pageRoutes";
 
 export const PAGE_CONFIG = [
   {
@@ -16,5 +25,11 @@ export const PAGE_CONFIG = [
     label: "Reservations",
     routes: reservationPagePath,
     component: <Reservations />,
+  },
+  {
+    icon: <MdOutlineManageSearch />,
+    label: "Search",
+    routes: searchPagePath,
+    component: <Search />,
   },
 ];

@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { date, number, object, string } from "yup";
 
-export const addResevationForValidationSchema = object({
+export const reservationFormValidationSchema = object({
   first_name: string().required("Please enter your first name"),
   last_name: string().required("Please enter your last name"),
   mobile_number: string().required("Please enter your phone number"),
@@ -39,5 +39,8 @@ export const addResevationForValidationSchema = object({
         return true;
       },
     }),
-  people: number().required("Please enter the number people"),
+  people: number()
+    .min(1, "Mininum of 1 person")
+    .max(6, "Maximum of 6 people")
+    .required("Please enter the number people"),
 });
