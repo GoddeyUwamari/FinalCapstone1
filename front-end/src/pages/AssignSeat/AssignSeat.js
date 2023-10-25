@@ -27,30 +27,35 @@ const AssignSeat = () => {
     const controller = new AbortController();
     try {
       if (values) {
-        return updateReservationStatus(
-          "seated",
+        const response = updateTableStatus(
           reservation_id,
+          values.seat,
           async (isSuccessfull) => {
-            if (isSuccessfull)
-              await updateTableStatus(
+            if (isSuccessfull) {
+              const res = await updateReservationStatus(
+                "seated",
                 reservation_id,
-                values.seat,
                 (isSubmitted) => {
                   if (isSubmitted) {
-                    toast.success("Status updated successfully");
+                    toast.success("Seat assigned successfully");
                     navigate(dashboardPagePath);
-                  } else {
-                    toast.error("Failed to update status");
                   }
                 },
                 controller.signal
               );
+
+              if (!res) throw new Error(res.error);
+              if (res) return res;
+            }
           },
           controller.signal
         );
+
+        if (!response) throw new Error(response.error);
+        if (response) return response;
       }
     } catch (error) {
-      toast.error(error);
+      toast.error(error.error);
     }
     return () => controller.abort();
   };
