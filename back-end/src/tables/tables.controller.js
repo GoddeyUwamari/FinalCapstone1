@@ -79,6 +79,7 @@ const checkReservation = async (req, res, next) => {
   }
 
   const table = await service.getById(table_id);
+
   if (!table.capacity)
     next({
       status: 404,
@@ -89,6 +90,12 @@ const checkReservation = async (req, res, next) => {
     next({
       status: 400,
       message: `Reservation with ${reservation.people} people exceeds table capaity`,
+    });
+
+  if (table.reservation_id === reservation.reservation_id)
+    next({
+      status: 400,
+      message: "Table is occupied",
     });
 
   next();
