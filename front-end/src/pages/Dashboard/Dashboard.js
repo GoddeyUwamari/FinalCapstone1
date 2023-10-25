@@ -1,8 +1,8 @@
 import React from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Table } from "../../components";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
-import { useSearchParams } from "react-router-dom";
 import {
   FinishedTableModal,
   CancelReservationModal,
@@ -17,11 +17,13 @@ import { next, previous, today } from "../../utils/date-time";
 import { listReservations, fetchTables } from "../../utils/api";
 
 import styles from "./Dashboard.module.css";
+import { dashboardPagePath } from "../../data/pageRoutes";
 
 const Dashboard = () => {
-  const currentDate = today();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  searchParams.set("date", currentDate);
+  const searchDate = searchParams.get("date");
+  const currentDate = searchDate || today();
 
   const initialState = {
     openModal: false,
@@ -86,6 +88,15 @@ const Dashboard = () => {
   }, []);
 
   React.useEffect(() => {
+    if (state.date) {
+      navigate({
+        pathname: dashboardPagePath,
+        search: `date=${state.date}`,
+      });
+    }
+  }, [state.date, navigate]);
+
+  React.useEffect(() => {
     const controller = new AbortController();
     handleFetchTable(controller.signal);
 
@@ -111,7 +122,8 @@ const Dashboard = () => {
         <div className={styles.Dashboard_content_btns}>
           <button onClick={() => handleDateUpdate("prev")}>Prev</button>
           <span>
-            Reservation for {format(new Date(state.date), "eeee MMM dd, yyyy")}
+            Reservation{state.reservations?.length > 1 ? "s" : ""} for{" "}
+            {format(new Date(state.date), "eeee MMM dd, yyyy")}
           </span>
           <button onClick={() => handleDateUpdate("next")}>Next</button>
         </div>

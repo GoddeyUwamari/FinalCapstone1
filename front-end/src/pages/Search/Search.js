@@ -1,11 +1,13 @@
 import React from "react";
-import { RESERVATION_MOCK_DATA } from "../../data/mockData";
-import { getSearchedResult } from "../../utils/generics";
 import { toast } from "react-toastify";
-import { uniqueId } from "lodash";
-import { getReservationsActions } from "../../data/tableConfig";
-import { CancelReservationModal } from "../../modals";
 import { BiSearch } from "react-icons/bi";
+import { ImFilesEmpty } from "react-icons/im";
+import {
+  getReservationsActions,
+  getReservationsDataSchema,
+} from "../../data/tableConfig";
+import { Table } from "../../components";
+import { CancelReservationModal } from "../../modals";
 import { listReservations } from "../../utils/api";
 
 import styles from "./Search.module.css";
@@ -13,7 +15,6 @@ import styles from "./Search.module.css";
 const Search = () => {
   const initialState = {
     openModal: false,
-    modalType: null,
     activeReservation: null,
     search: "",
     searchedResult: null,
@@ -24,22 +25,23 @@ const Search = () => {
   const handleStateUpdate = (newState) =>
     setState((state) => ({ ...state, ...newState }));
 
-  const searchData = RESERVATION_MOCK_DATA[4];
-  const searchedResults = state.searchedResult
-    ? getSearchedResult(state.searchedResult[0])
-    : null;
-  const searchActions = getReservationsActions(handleStateUpdate);
+  const dataSchema = getReservationsDataSchema();
+  const actions = getReservationsActions(handleStateUpdate);
 
   const handleSearchCallback = React.useCallback(
     async (e) => {
       try {
         e.preventDefault();
-        const res = await listReservations({ mobile_number: state.search });
-
-        if (res) handleStateUpdate({ searchedResult: res });
+        if (state.search !== "") {
+          const res = await listReservations({
+            mobile_number: state.search,
+          });
+          handleStateUpdate({ searchedResult: res, search: "" });
+        } else {
+          toast.error("Enter a valid mobile number");
+        }
       } catch (error) {
         toast.error("Something went wrong getting reservations");
-        console.log(error);
       }
     },
     [state.search]
@@ -47,7 +49,7 @@ const Search = () => {
 
   return (
     <section className={styles.Search}>
-      <div className={styles.Search_form}>
+      <form className={styles.Search_form} onSubmit={handleSearchCallback}>
         <input
           type="tel"
           className={styles.Search_form_input}
@@ -63,52 +65,29 @@ const Search = () => {
           onClick={(e) => handleSearchCallback(e)}
           className={styles.Search_form_icon}
         />
-      </div>
+      </form>
 
-      {!!searchedResults ? (
-        <div className={styles.Search_result}>
-          <h3 className={styles.Search_result_title}>Searched result</h3>
-
-          <ul className={styles.Search_result_data}>
-            {searchedResults.map((item) => (
-              <li
-                key={uniqueId("searched-result_")}
-                className={styles.Search_result_data_item}
-              >
-                <p>{item.label}</p>
-                <p>{item.value}</p>
-              </li>
-            ))}
-          </ul>
+      {state.searchedResult && state.searchedResult.length === 0 ? (
+        <div className={styles.Search_notFound}>
+          <ImFilesEmpty />
+          <p>No reservation found</p>
         </div>
       ) : (
         <div className={styles.Search_result}>
-          <p>No searched result</p>
-        </div>
-      )}
+          <h3 className={styles.Search_result_title}>Searched result</h3>
 
-      {!!searchedResults && (
-        <div className={styles.Search_actions}>
-          {searchActions?.map((action) => {
-            const isVisible = action.handleVisibility
-              ? action.handleVisibility(searchData)
-              : false;
-
-            return (
-              <React.Fragment key={uniqueId("search-action_")}>
-                {isVisible ? action.render(searchData) : null}
-              </React.Fragment>
-            );
-          })}
+          <Table
+            data={state.searchedResult}
+            dataSchema={dataSchema}
+            actions={actions}
+          />
         </div>
       )}
 
       <CancelReservationModal
         reservation={state.activeReservation}
-        show={state.openModal && state.modalType === "cancel"}
-        handleClose={() =>
-          handleStateUpdate({ openModal: false, modalType: null })
-        }
+        show={state.openModal}
+        handleClose={() => handleStateUpdate({ openModal: false })}
         refresh={handleSearchCallback}
       />
     </section>

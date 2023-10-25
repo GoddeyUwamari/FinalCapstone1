@@ -9,7 +9,7 @@ import { formatAsDate, today } from "../../utils/date-time";
 
 import styles from "./ReservationForm.module.css";
 
-const ReservationForm = ({ type, data, handleClose, refresh }) => {
+const ReservationForm = ({ type, data, refresh }) => {
   const navigate = useNavigate();
   const isEdit = type === "edit";
 
@@ -27,6 +27,14 @@ const ReservationForm = ({ type, data, handleClose, refresh }) => {
     people: data?.people || "",
   };
 
+  const handleNavigation = (date) => {
+    refresh();
+    navigate({
+      pathname: dashboardPagePath,
+      search: `date=${date}`,
+    });
+  };
+
   const handleFormSubmit = (values) => {
     const controller = new AbortController();
 
@@ -41,9 +49,8 @@ const ReservationForm = ({ type, data, handleClose, refresh }) => {
           formValues,
           (isSuccessful) => {
             if (isSuccessful) {
-              refresh();
               toast.success("Reservation added successfully");
-              handleClose();
+              handleNavigation(formValues.reservation_date);
             } else {
               toast.error("Failed to add reservation");
             }
@@ -57,9 +64,8 @@ const ReservationForm = ({ type, data, handleClose, refresh }) => {
           data.reservation_id,
           (isSuccessful) => {
             if (isSuccessful) {
-              refresh();
               toast.success("Reservation updated successfully");
-              navigate(dashboardPagePath);
+              handleNavigation(formValues.reservation_date);
             } else {
               toast.error("Reservation update failed");
             }
@@ -188,15 +194,14 @@ const ReservationForm = ({ type, data, handleClose, refresh }) => {
             </div>
 
             <div className={styles.ReservationForm_form_btns}>
-              {type === "edit" && (
-                <button
-                  type="button"
-                  onClick={() => navigate(-1)}
-                  className={styles.ReservationForm_form_btns_cancel}
-                >
-                  Cancel
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className={styles.ReservationForm_form_btns_cancel}
+              >
+                Cancel
+              </button>
+
               <button
                 type="submit"
                 disabled={!isValid || !dirty}

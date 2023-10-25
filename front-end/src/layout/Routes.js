@@ -2,21 +2,21 @@
 import React from "react";
 import NotFound from "./NotFound";
 import Layout from "./Layout/Layout";
-import { useRoutes } from "react-router";
-import Dashboard from "../pages/Dashboard";
-import { dashboardPagePath, reservationPagePath } from "../data/pageRoutes";
+import { useRoutes, Navigate } from "react-router";
+import { dashboardPageSlug, reservationPagePath } from "../data/pageRoutes";
 import { PAGE_CONFIG } from "../data/pageConfig";
 import EditReservation from "../pages/EditReservation";
 import AssignSeat from "../pages/AssignSeat";
+import AddReservation from "../pages/AddReservation";
 
 const Routes = () => {
   return useRoutes([
     {
       element: <Layout />,
+      path: "/",
       children: [
         {
-          path: dashboardPagePath,
-          element: <Dashboard />,
+          element: <Navigate to={dashboardPageSlug} replace />,
           index: true,
         },
         ...PAGE_CONFIG.map((item) => ({
@@ -32,6 +32,10 @@ const Routes = () => {
     {
       element: <AssignSeat />,
       path: `${reservationPagePath}/:reservation_id/seat`,
+    },
+    {
+      element: <AddReservation />,
+      path: `${reservationPagePath}/new`,
     },
     {
       path: "/*",

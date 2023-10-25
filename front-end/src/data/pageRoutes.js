@@ -1,4 +1,4 @@
-export const dashboardPageSlug = "";
+export const dashboardPageSlug = "dashboard";
 export const dashboardPagePath = `/${dashboardPageSlug}`;
 
 // Reservations

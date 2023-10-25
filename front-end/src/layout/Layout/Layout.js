@@ -1,31 +1,12 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
-import { toast } from "react-toastify";
+import { Outlet, useNavigate } from "react-router-dom";
 import { ActionButton, Sidebar } from "../../components";
-import AddResevationModal from "../../modals/AddResevationModal";
-import { fetchReservations } from "../../utils/api";
 
 import styles from "./Layout.module.css";
+import { reservationPagePath } from "../../data/pageRoutes";
 
 const Layout = () => {
-  const initialState = {
-    openModal: false,
-  };
-  const [state, setState] = React.useState(initialState);
-
-  const handleStateUpdate = (newState) =>
-    setState((state) => ({ ...state, ...newState }));
-
-  const handleFetchReservation = React.useCallback(async () => {
-    const controller = new AbortController();
-    try {
-      const res = await fetchReservations(controller.signal);
-      if (!res) throw new Error(res.message);
-    } catch (error) {
-      toast.error("Something went wrong");
-    }
-    return () => controller.abort();
-  }, []);
+  const navigate = useNavigate();
 
   return (
     <section className={styles.Layout}>
@@ -33,12 +14,8 @@ const Layout = () => {
       <div className={styles.Layout_content}>
         <Outlet />
       </div>
-      <AddResevationModal
-        show={state.openModal}
-        handleClose={() => handleStateUpdate({ openModal: false })}
-        refresh={handleFetchReservation}
-      />
-      <ActionButton action={() => handleStateUpdate({ openModal: true })} />
+
+      <ActionButton action={() => navigate(`${reservationPagePath}/new`)} />
     </section>
   );
 };
