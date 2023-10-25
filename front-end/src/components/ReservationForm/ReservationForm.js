@@ -1,41 +1,88 @@
 import React from "react";
 import { Formik } from "formik";
+import { useNavigate } from "react-router";
+import { toast } from "react-toastify";
+import { postReservation, updateReservation } from "../../utils/api";
 import { reservationFormValidationSchema } from "./validation";
+import { dashboardPagePath } from "../../data/pageRoutes";
+import { formatAsDate, today } from "../../utils/date-time";
 
 import styles from "./ReservationForm.module.css";
-import { useNavigate } from "react-router";
 
-const ReservationForm = ({ type, data }) => {
+const ReservationForm = ({ type, data, handleClose, refresh }) => {
+  const navigate = useNavigate();
+  const isEdit = type === "edit";
+
+  const reservationDate =
+    data && data.reservation_date
+      ? formatAsDate(data.reservation_date)
+      : today();
+
   const initialValues = {
     first_name: data?.first_name || "",
     last_name: data?.last_name || "",
     mobile_number: data?.mobile_number || "",
-    reservation_date: data?.reservation_date || "",
+    reservation_date: reservationDate,
     reservation_time: data?.reservation_time || "",
     people: data?.people || "",
   };
 
-  const navigate = useNavigate();
+  const handleFormSubmit = (values) => {
+    const controller = new AbortController();
 
-  const currentDate = new Date();
+    try {
+      const formValues = {
+        ...values,
+        status: "booked",
+      };
 
-  const handleSubmit = (values) => {
-    const formValues = {
-      ...values,
-      status: "booked",
-    };
-    console.log(formValues);
+      if (type !== "edit")
+        return postReservation(
+          formValues,
+          (isSuccessful) => {
+            if (isSuccessful) {
+              refresh();
+              toast.success("Reservation added successfully");
+              handleClose();
+            } else {
+              toast.error("Failed to add reservation");
+            }
+          },
+          controller.signal
+        );
+
+      if (type === "edit")
+        return updateReservation(
+          formValues,
+          data.reservation_id,
+          (isSuccessful) => {
+            if (isSuccessful) {
+              refresh();
+              toast.success("Reservation updated successfully");
+              navigate(dashboardPagePath);
+            } else {
+              toast.error("Reservation update failed");
+            }
+          },
+          controller.signal
+        );
+    } catch (err) {
+      toast.error(err);
+      return () => controller.abort();
+    }
   };
+
   return (
     <div className={styles.ReservationForm}>
       <h3 className={styles.ReservationForm_title}>
-        {type === "edit" ? "Edit" : "Add"} Reservation
+        {isEdit ? "Edit" : "Add"} Reservation
       </h3>
 
       <Formik
         initialValues={initialValues}
-        onSubmit={handleSubmit}
+        onSubmit={handleFormSubmit}
         validationSchema={reservationFormValidationSchema}
+        enableReinitialize
       >
         {({
           values,
@@ -45,6 +92,7 @@ const ReservationForm = ({ type, data }) => {
           touched,
           errors,
           handleBlur,
+          handleSubmit,
         }) => (
           <form onSubmit={handleSubmit} className={styles.ReservationForm_form}>
             <div className={styles.ReservationForm_form_row}>
@@ -98,7 +146,7 @@ const ReservationForm = ({ type, data }) => {
                 type="date"
                 name="reservation_date"
                 id="reservation_date"
-                min={currentDate}
+                min={today()}
                 required
                 value={values.reservation_date}
                 onChange={handleChange}
@@ -154,7 +202,7 @@ const ReservationForm = ({ type, data }) => {
                 disabled={!isValid || !dirty}
                 className={styles.ReservationForm_form_btns_action}
               >
-                {type === "edit" ? "Edit" : "Submit"}
+                {isEdit ? "Edit" : "Submit"}
               </button>
             </div>
           </form>

@@ -1,4 +1,5 @@
 import { capitalize } from "lodash";
+import { formatAsDate, formatAsTime } from "./date-time";
 
 export const getSearchedResult = (data) => [
   {
@@ -11,11 +12,11 @@ export const getSearchedResult = (data) => [
   },
   {
     label: "Reservation date",
-    value: data.reservation_date,
+    value: formatAsDate(data.reservation_date),
   },
   {
     label: "Reservation time",
-    value: data.reservation_time,
+    value: formatAsTime(data.reservation_time),
   },
   {
     label: "Status",

@@ -1,17 +1,34 @@
 import React from "react";
-import Modal from "../../components/Modal";
 import { Formik } from "formik";
+import { toast } from "react-toastify";
+import Modal from "../../components/Modal";
+import { createTableValidationSchema } from "./validation";
+import { postTable } from "../../utils/api";
 
 import styles from "./CreateTableModal.module.css";
-import { createTableValidationSchema } from "./validation";
 
-const CreateTableModal = ({ show, handleClose }) => {
+const CreateTableModal = ({ show, handleClose, refresh }) => {
   const initialValues = {
     table_name: "",
     capacity: "",
   };
 
-  const handleFormSubmission = (values) => console.log("Create table ", values);
+  const handleFormSubmission = (values) => {
+    try {
+      if (values)
+        return postTable(values, (isSuccessful) => {
+          if (isSuccessful) {
+            refresh();
+            toast.success("Table added successfully");
+            handleClose();
+          } else {
+            toast.error("Failed to add table");
+          }
+        });
+    } catch (error) {
+      toast.error(error);
+    }
+  };
 
   return (
     <Modal

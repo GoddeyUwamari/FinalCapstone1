@@ -1,19 +1,20 @@
 import React from "react";
 import { Table } from "../../components";
-import { RESERVATION_MOCK_DATA } from "../../data/mockData";
-import { AddReservationModal, CancelReservationModal } from "../../modals";
+import { toast } from "react-toastify";
+import { CancelReservationModal } from "../../modals";
 import {
   getReservationsActions,
   getReservationsDataSchema,
 } from "../../data/tableConfig";
 
 import styles from "./Reservations.module.css";
+import { fetchReservations } from "../../utils/api";
 
 const Reservations = () => {
   const initialState = {
     openModal: false,
-    modalType: null,
     activeReservation: null,
+    reservations: null,
   };
 
   const [state, setState] = React.useState(initialState);
@@ -25,31 +26,39 @@ const Reservations = () => {
 
   const tableActions = getReservationsActions(handleStateUpdate);
 
+  const handleFetchReservations = React.useCallback(async (signal) => {
+    try {
+      const res = await fetchReservations(signal);
+
+      if (res) handleStateUpdate({ reservations: res });
+    } catch (error) {
+      toast.error("Something went wrong getting tables");
+      console.log(error);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    const controller = new AbortController();
+    handleFetchReservations(controller.signal);
+
+    return () => controller.abort();
+  }, [handleFetchReservations]);
+
   return (
     <section className={styles.Reservations}>
       <h3 className={styles.Reservations_title}>Reservations</h3>
 
       <Table
-        data={RESERVATION_MOCK_DATA}
+        data={state.reservations}
         dataSchema={tableDataSchema}
         actions={tableActions}
       />
 
-      <AddReservationModal
-        data={state.activeReservation}
-        show={state.openModal && state.modalType === "edit"}
-        type={"edit"}
-        handleClose={() =>
-          handleStateUpdate({ openModal: false, modalType: null })
-        }
-      />
-
       <CancelReservationModal
         reservation={state.activeReservation}
-        show={state.openModal && state.modalType === "cancel"}
-        handleClose={() =>
-          handleStateUpdate({ openModal: false, modalType: null })
-        }
+        show={state.openModal}
+        handleClose={() => handleStateUpdate({ openModal: false })}
+        refresh={handleFetchReservations}
       />
     </section>
   );

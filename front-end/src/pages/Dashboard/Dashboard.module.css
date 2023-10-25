@@ -34,6 +34,13 @@
   font-weight: 500;
 }
 
+.Dashboard_content_btns > span {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.12px;
+}
+
 .Dashboard_table_btn:hover,
 .Dashboard_content_btns > button:hover {
   opacity: 0.9;

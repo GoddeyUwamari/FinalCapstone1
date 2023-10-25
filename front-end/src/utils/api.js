@@ -8,6 +8,9 @@ import formatReservationTime from "./format-reservation-date";
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:5001";
 
+const reservationsApiRoute = `${API_BASE_URL}/reservations`;
+const tablesApiRoute = `${API_BASE_URL}/tables`;
+
 /**
  * Defines the default headers for these functions to work with `json-server`
  */
@@ -59,7 +62,7 @@ async function fetchJson(url, options, onCancel) {
  */
 
 export async function listReservations(params, signal) {
-  const url = new URL(`${API_BASE_URL}/reservations`);
+  const url = new URL(reservationsApiRoute);
   Object.entries(params).forEach(([key, value]) =>
     url.searchParams.append(key, value.toString())
   );
@@ -67,3 +70,138 @@ export async function listReservations(params, signal) {
     .then(formatReservationDate)
     .then(formatReservationTime);
 }
+
+//Fetch tables
+export const fetchTables = async (signal) => {
+  const options = {
+    method: "GET",
+    headers,
+    signal,
+  };
+  return await fetchJson(tablesApiRoute, options);
+};
+
+// fetch all reservations
+export const fetchReservations = async (signal) => {
+  const options = {
+    method: "GET",
+    headers,
+    signal,
+  };
+  const res = await fetchJson(reservationsApiRoute, options);
+  return res;
+};
+
+// fetch all reservations
+export const fetchReservationsById = async (id, signal) => {
+  const options = {
+    method: "GET",
+    headers,
+    signal,
+  };
+  const res = await fetchJson(`${reservationsApiRoute}/${id}`, options);
+  return res;
+};
+
+// Create reservation
+export const postReservation = async (data, cb, signal) => {
+  const options = {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ data }),
+    signal,
+  };
+
+  const res = await fetchJson(reservationsApiRoute, options);
+
+  return cb(!!res);
+};
+
+// Update reservation
+export const updateReservation = async (data, id, cb, signal) => {
+  const options = {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({ data }),
+    signal,
+  };
+
+  const res = await fetchJson(`${reservationsApiRoute}/${id}/edit`, options);
+
+  return cb(!!res);
+};
+
+//Create table
+export const postTable = async (data, cb, signal) => {
+  const options = {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ data }),
+    signal,
+  };
+
+  const res = await fetchJson(tablesApiRoute, options);
+  return cb(!!res);
+};
+
+// Update reservation status
+export const updateReservationStatus = async (
+  status,
+  reservation_id,
+  cb,
+  signal
+) => {
+  const options = {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({ data: { status } }),
+    signal,
+  };
+
+  const res = await fetchJson(
+    `${reservationsApiRoute}/${reservation_id}/status`,
+    options
+  );
+  return cb(!!res);
+};
+
+//Update table status
+export const updateTableStatus = async (
+  reservation_id,
+  table_id,
+  cb,
+  signal
+) => {
+  const options = {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({ data: { reservation_id } }),
+    signal,
+  };
+
+  const res = await fetchJson(`${tablesApiRoute}/${table_id}/seat`, options);
+  return cb(!!res);
+};
+
+// Get table
+export const fetchTableById = async (table_id, signal) => {
+  const options = {
+    method: "GET",
+    headers,
+    signal,
+  };
+  const res = await fetchJson(`${tablesApiRoute}/${table_id}`, options);
+  return res;
+};
+
+//Finish table
+export const finishTable = async (table_id, reservation_id, cb, signal) => {
+  const options = {
+    method: "DELETE",
+    headers,
+    body: JSON.stringify({ data: { reservation_id } }),
+    signal,
+  };
+  const res = await fetchJson(`${tablesApiRoute}/${table_id}/seat`, options);
+  return cb(!!res);
+};

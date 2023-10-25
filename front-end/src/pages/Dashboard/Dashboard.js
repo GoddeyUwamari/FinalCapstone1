@@ -1,9 +1,10 @@
 import React from "react";
 import { Table } from "../../components";
-import { RESERVATION_MOCK_DATA, TABLE_MOCK_DATA } from "../../data/mockData";
+import { toast } from "react-toastify";
+import { format } from "date-fns";
+import { useSearchParams } from "react-router-dom";
 import {
-  AddReservationModal,
-  CheckoutModal,
+  FinishedTableModal,
   CancelReservationModal,
   CreateTableModal,
 } from "../../modals";
@@ -12,13 +13,15 @@ import {
   getReservationsDataSchema,
   getTableDataSchema,
 } from "../../data/tableConfig";
+import { next, previous, today } from "../../utils/date-time";
+import { listReservations, fetchTables } from "../../utils/api";
 
 import styles from "./Dashboard.module.css";
-import { next, previous } from "../../utils/date-time";
-import { format } from "date-fns";
 
 const Dashboard = () => {
-  const currentDate = format(new Date(), "yyyy-MM-dd");
+  const currentDate = today();
+  const [searchParams] = useSearchParams();
+  searchParams.set("date", currentDate);
 
   const initialState = {
     openModal: false,
@@ -26,17 +29,14 @@ const Dashboard = () => {
     activeReservation: null,
     activeTableId: null,
     date: currentDate,
+    reservations: null,
+    tables: null,
   };
 
   const [state, setState] = React.useState(initialState);
 
   const handleStateUpdate = (newState) =>
     setState((state) => ({ ...state, ...newState }));
-
-  const reservationsData = RESERVATION_MOCK_DATA.filter(
-    (item) =>
-      format(new Date(item.reservation_date), "yyyy-MM-dd") === state.date
-  );
 
   const reservationsDataSchema = getReservationsDataSchema();
 
@@ -49,24 +49,77 @@ const Dashboard = () => {
     if (type === "prev") handleStateUpdate({ date: previous(state.date) });
   };
 
+  const handleFetchReservationsCallback = React.useCallback(
+    async (signal) => {
+      try {
+        const res = await listReservations({ date: state.date }, signal);
+
+        if (res) handleStateUpdate({ reservations: res });
+      } catch (error) {
+        toast.error("Something went wrong getting reservations");
+      }
+    },
+    [state.date]
+  );
+
+  const handleFetchTable = React.useCallback(async (signal) => {
+    try {
+      const res = await fetchTables(signal);
+
+      if (res) {
+        const tableData = res.map((item) => {
+          let status;
+          if (item.reservation_id === null) status = "free";
+          else status = "occupied";
+
+          return {
+            ...item,
+            status,
+          };
+        });
+        handleStateUpdate({ tables: tableData });
+      }
+    } catch (error) {
+      toast.error("Something went wrong getting tables");
+      console.log(error);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    const controller = new AbortController();
+    handleFetchTable(controller.signal);
+
+    return () => controller.abort();
+  }, [handleFetchTable]);
+
+  React.useEffect(() => {
+    const controller = new AbortController();
+    handleFetchReservationsCallback(controller.signal);
+
+    return () => controller.abort();
+  }, [state.date, handleFetchReservationsCallback]);
+
   return (
     <section className={styles.Dashboard}>
       <div className={styles.Dashboard_content}>
         <h1 className={styles.Dashboard_content_title}>Reservations</h1>
         <Table
-          data={reservationsData}
+          data={state.reservations}
           dataSchema={reservationsDataSchema}
           actions={reservationsActions}
         />
         <div className={styles.Dashboard_content_btns}>
           <button onClick={() => handleDateUpdate("prev")}>Prev</button>
+          <span>
+            Reservation for {format(new Date(state.date), "eeee MMM dd, yyyy")}
+          </span>
           <button onClick={() => handleDateUpdate("next")}>Next</button>
         </div>
       </div>
 
       <div className={styles.Dashboard_table}>
         <h1 className={styles.Dashboard_table_title}>Tables</h1>
-        <Table data={TABLE_MOCK_DATA} dataSchema={tableDataSchema} />
+        <Table data={state.tables} dataSchema={tableDataSchema} />
         <button
           className={styles.Dashboard_table_btn}
           onClick={() =>
@@ -77,20 +130,12 @@ const Dashboard = () => {
         </button>
       </div>
 
-      <AddReservationModal
-        data={state.activeReservation}
-        show={state.openModal && state.modalType === "edit"}
-        type={"edit"}
-        handleClose={() =>
-          handleStateUpdate({ openModal: false, modalType: null })
-        }
-      />
-
       <CreateTableModal
         show={state.openModal && state.modalType === "create-table"}
         handleClose={() =>
           handleStateUpdate({ openModal: false, modalType: null })
         }
+        refresh={handleFetchTable}
       />
 
       <CancelReservationModal
@@ -99,9 +144,10 @@ const Dashboard = () => {
         handleClose={() =>
           handleStateUpdate({ openModal: false, modalType: null })
         }
+        refresh={handleFetchReservationsCallback}
       />
 
-      <CheckoutModal
+      <FinishedTableModal
         table_id={state.activeTableId}
         show={state.openModal && state.modalType === "finished"}
         handleClose={() =>

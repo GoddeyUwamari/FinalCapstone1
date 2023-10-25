@@ -17,7 +17,7 @@ const Portal = ({ className, onClick, children, portalId }) => {
     return () => {
       document.body.removeChild(currentPortal);
     };
-  }, []);
+  }, [onClick]);
 
   React.useEffect(() => {
     let currentPortal = portalRef.current;
@@ -36,7 +36,7 @@ const Portal = ({ className, onClick, children, portalId }) => {
         }
       });
     };
-  }, []);
+  }, [portalId, className]);
 
   return createPortal(children, portalRef.current);
 };

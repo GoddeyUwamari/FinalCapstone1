@@ -1,24 +1,74 @@
 import React from "react";
 import { Formik } from "formik";
-import { assignSeatValidationSchema } from "./validation";
 import { useNavigate, useParams } from "react-router";
-import { TABLE_MOCK_DATA } from "../../data/mockData";
 import { uniqueId } from "lodash";
+import { toast } from "react-toastify";
+import { assignSeatValidationSchema } from "./validation";
+import {
+  fetchTables,
+  updateReservationStatus,
+  updateTableStatus,
+} from "../../utils/api";
 
 import styles from "./AssignSeat.module.css";
+import { dashboardPagePath } from "../../data/pageRoutes";
 
 const AssignSeat = () => {
   const navigate = useNavigate();
   const { reservation_id } = useParams();
 
+  const [tables, setTables] = React.useState(null);
+
   const initialValues = {
     seat: "",
   };
 
-  const handleFormSubmit = (values) =>
-    console.log("Assign seat: ", values, reservation_id);
+  const handleFormSubmit = (values) => {
+    const controller = new AbortController();
+    try {
+      if (values) {
+        return updateReservationStatus(
+          "seated",
+          reservation_id,
+          async (isSuccessfull) => {
+            if (isSuccessfull)
+              await updateTableStatus(
+                reservation_id,
+                values.seat,
+                (isSubmitted) => {
+                  if (isSubmitted) {
+                    toast.success("Status updated successfully");
+                    navigate(dashboardPagePath);
+                  } else {
+                    toast.error("Failed to update status");
+                  }
+                },
+                controller.signal
+              );
+          },
+          controller.signal
+        );
+      }
+    } catch (error) {
+      toast.error(error);
+    }
+    return () => controller.abort();
+  };
 
-  const tables = TABLE_MOCK_DATA;
+  const handleFetchTable = React.useCallback(async (signal) => {
+    const res = await fetchTables(signal);
+    if (res) {
+      const tabledata = res.filter((item) => !item.reservation_id);
+      setTables(tabledata);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    const controller = new AbortController();
+    handleFetchTable(controller.signal);
+
+    return () => controller.abort();
+  }, [handleFetchTable]);
 
   return (
     <section className={styles.AssignSeat}>
@@ -44,10 +94,7 @@ const AssignSeat = () => {
                 Select seat
               </option>
               {tables?.map((item) => (
-                <option
-                  key={uniqueId("seat-options_")}
-                  value={`${item.table_name} - ${item.capacity}`}
-                >
+                <option key={uniqueId("seat-options_")} value={item.table_id}>
                   {item.table_name} - {item.capacity}
                 </option>
               ))}

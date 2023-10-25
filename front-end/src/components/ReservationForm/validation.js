@@ -1,12 +1,13 @@
 import { format } from "date-fns";
 import { date, number, object, string } from "yup";
+import { today } from "../../utils/date-time";
 
 export const reservationFormValidationSchema = object({
   first_name: string().required("Please enter your first name"),
   last_name: string().required("Please enter your last name"),
   mobile_number: string().required("Please enter your phone number"),
   reservation_date: date()
-    .min(new Date(), "Cannot create reservation for past days")
+    .min(today(), "Cannot create reservation for past days")
     .test({
       name: "is-Tuesday",
       skipAbsent: true,

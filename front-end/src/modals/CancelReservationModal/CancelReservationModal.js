@@ -1,13 +1,38 @@
 import React from "react";
+import { toast } from "react-toastify";
 import { Modal } from "../../components";
+import { updateReservationStatus } from "../../utils/api";
 
 import styles from "./CancelReservationModal.module.css";
 
-const CancelReservationModal = ({ reservation, show, handleClose }) => {
-  const handleCancleReservation = () => {
-    if (reservation && reservation.reservation_id)
-      console.log("Cancle reservation", reservation.reservation_id);
-  };
+const CancelReservationModal = ({
+  reservation,
+  show,
+  handleClose,
+  refresh,
+}) => {
+  const handleCancleReservation = React.useCallback(async () => {
+    const controller = new AbortController();
+    try {
+      if (reservation && reservation.reservation_id) {
+        return await updateReservationStatus(
+          "cancelled",
+          reservation.reservation_id,
+          (isSuccessful) => {
+            if (isSuccessful) {
+              refresh();
+              toast.success("Reservation has been cancelled successfully");
+              handleClose();
+            } else {
+              throw new Error("Unable to cancel this reservatin");
+            }
+          },
+          controller.signal
+        );
+      }
+    } catch (error) {}
+    return () => controller.abort();
+  }, [reservation, handleClose, refresh]);
 
   return (
     <Modal

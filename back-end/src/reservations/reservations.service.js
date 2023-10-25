@@ -49,29 +49,9 @@ const changeStatus = async (status, reservation_id) => {
 };
 
 const updatedReservation = async (reservation_id, reservation) => {
-  const {
-    status,
-    reservation_time,
-    reservation_date,
-    first_name,
-    last_name,
-    people,
-    created_at,
-    mobile_number,
-  } = reservation;
-
   const res = await knex("reservations")
     .whereRaw(`reservation_id=${reservation_id}`)
-    .update({
-      status: status,
-      reservation_time: reservation_time,
-      reservation_date: reservation_date,
-      first_name: first_name,
-      last_name: last_name,
-      people: people,
-      created_at: created_at,
-      mobile_number: mobile_number,
-    })
+    .update(reservation)
     .returning("*");
 
   return res;

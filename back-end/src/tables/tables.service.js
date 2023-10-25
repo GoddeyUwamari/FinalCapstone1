@@ -11,7 +11,9 @@ const list = async () => {
 };
 
 const getById = async (table_id) => {
-  return await knex("tables").select("*").where({ table_id }).first();
+  const res = await knex("tables").select("*").where({ table_id }).first();
+
+  return res;
 };
 
 const update = async (table_id, reservation_id) => {

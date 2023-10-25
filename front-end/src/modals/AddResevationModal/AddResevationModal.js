@@ -4,14 +4,14 @@ import Modal from "../../components/Modal";
 import styles from "./AddResevationModal.module.css";
 import { ReservationForm } from "../../components";
 
-const AddResevationModal = ({ show, handleClose, type, data }) => {
+const AddResevationModal = ({ show, handleClose, refresh }) => {
   return (
     <Modal
       show={show}
       handleClose={handleClose}
       className={styles.AddResevationModal}
     >
-      <ReservationForm />
+      <ReservationForm handleClose={handleClose} refresh={refresh} />
     </Modal>
   );
 };

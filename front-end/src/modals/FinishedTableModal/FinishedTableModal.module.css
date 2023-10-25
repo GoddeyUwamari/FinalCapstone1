@@ -1,9 +1,9 @@
-.CheckoutModal {
+.FinishedTableModal {
   width: 457px;
   padding: 16px 24px;
 }
 
-.CheckoutModal_title {
+.FinishedTableModal_title {
   font-size: 24px;
   font-weight: 500;
   line-height: 28px;
@@ -11,7 +11,7 @@
   text-align: center;
 }
 
-.CheckoutModal_text {
+.FinishedTableModal_text {
   margin: 8px auto 0;
   line-height: 20px;
   letter-spacing: -0.12px;
@@ -20,7 +20,7 @@
   max-width: 256px;
 }
 
-.CheckoutModal_btn {
+.FinishedTableModal_btn {
   width: 100%;
   margin-top: 48px;
   border: none;
@@ -33,6 +33,6 @@
   font-weight: 500;
 }
 
-.CheckoutModal_btn:hover {
+.FinishedTableModal_btn:hover {
   opacity: 0.9;
 }

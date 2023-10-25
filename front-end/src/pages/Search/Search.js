@@ -1,13 +1,14 @@
 import React from "react";
-import { Search as SearchComponent } from "../../components";
 import { RESERVATION_MOCK_DATA } from "../../data/mockData";
 import { getSearchedResult } from "../../utils/generics";
-
-import styles from "./Search.module.css";
+import { toast } from "react-toastify";
 import { uniqueId } from "lodash";
 import { getReservationsActions } from "../../data/tableConfig";
-import { AddReservationModal, CancelReservationModal } from "../../modals";
+import { CancelReservationModal } from "../../modals";
 import { BiSearch } from "react-icons/bi";
+import { listReservations } from "../../utils/api";
+
+import styles from "./Search.module.css";
 
 const Search = () => {
   const initialState = {
@@ -15,6 +16,7 @@ const Search = () => {
     modalType: null,
     activeReservation: null,
     search: "",
+    searchedResult: null,
   };
 
   const [state, setState] = React.useState(initialState);
@@ -23,13 +25,25 @@ const Search = () => {
     setState((state) => ({ ...state, ...newState }));
 
   const searchData = RESERVATION_MOCK_DATA[4];
-  const searchedResults = getSearchedResult(searchData);
+  const searchedResults = state.searchedResult
+    ? getSearchedResult(state.searchedResult[0])
+    : null;
   const searchActions = getReservationsActions(handleStateUpdate);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log(state.search);
-  };
+  const handleSearchCallback = React.useCallback(
+    async (e) => {
+      try {
+        e.preventDefault();
+        const res = await listReservations({ mobile_number: state.search });
+
+        if (res) handleStateUpdate({ searchedResult: res });
+      } catch (error) {
+        toast.error("Something went wrong getting reservations");
+        console.log(error);
+      }
+    },
+    [state.search]
+  );
 
   return (
     <section className={styles.Search}>
@@ -46,7 +60,7 @@ const Search = () => {
         />
 
         <BiSearch
-          onClick={(e) => handleSubmit(e)}
+          onClick={(e) => handleSearchCallback(e)}
           className={styles.Search_form_icon}
         />
       </div>
@@ -67,30 +81,27 @@ const Search = () => {
             ))}
           </ul>
         </div>
-      ) : null}
+      ) : (
+        <div className={styles.Search_result}>
+          <p>No searched result</p>
+        </div>
+      )}
 
-      <div className={styles.Search_actions}>
-        {searchActions?.map((action) => {
-          const isVisible = action.handleVisibility
-            ? action.handleVisibility(searchData)
-            : false;
+      {!!searchedResults && (
+        <div className={styles.Search_actions}>
+          {searchActions?.map((action) => {
+            const isVisible = action.handleVisibility
+              ? action.handleVisibility(searchData)
+              : false;
 
-          return (
-            <React.Fragment key={uniqueId("search-action_")}>
-              {isVisible ? action.render(searchData) : null}
-            </React.Fragment>
-          );
-        })}
-      </div>
-
-      <AddReservationModal
-        data={state.activeReservation}
-        show={state.openModal && state.modalType === "edit"}
-        type={"edit"}
-        handleClose={() =>
-          handleStateUpdate({ openModal: false, modalType: null })
-        }
-      />
+            return (
+              <React.Fragment key={uniqueId("search-action_")}>
+                {isVisible ? action.render(searchData) : null}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      )}
 
       <CancelReservationModal
         reservation={state.activeReservation}
@@ -98,6 +109,7 @@ const Search = () => {
         handleClose={() =>
           handleStateUpdate({ openModal: false, modalType: null })
         }
+        refresh={handleSearchCallback}
       />
     </section>
   );

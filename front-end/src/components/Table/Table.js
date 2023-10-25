@@ -20,7 +20,7 @@ const Table = ({ data, dataSchema, actions }) => {
 
   return (
     <>
-      {data.length > 0 ? (
+      {data && data.length > 0 ? (
         <table className={styles.Table}>
           <thead className={styles.Table_head}>
             <tr>
