@@ -32,7 +32,7 @@ const Reservations = () => {
 
       if (res) handleStateUpdate({ reservations: res });
     } catch (error) {
-      toast.error("Something went wrong getting tables");
+      toast.error("Something went wrong fetching reservations");
       console.log(error);
     }
   }, []);
