@@ -6,6 +6,8 @@ const {
   getById: getReservationById,
 } = require("../reservations/reservations.service");
 
+const statusType = ["booked", "seated", "finished", "cancelled"];
+
 const list = async (req, res) => {
   const tables = await service.list();
   const result = tables.sort((a, b) => (a.table_name > b.table_name ? 1 : -1));
@@ -37,7 +39,10 @@ const createTable = async (req, res, next) => {
   }
 };
 
-const tableExists = async (table_id, next) => {
+//checks if table exists
+const tableExists = async (req, res, next) => {
+  const { table_id } = req.params;
+
   if (!table_id) next({ status: 490, message: "Invalid data id" });
 
   const table = await service.getById(table_id);
@@ -47,19 +52,15 @@ const tableExists = async (table_id, next) => {
       message: `Table ${table_id} does not exist`,
     });
   }
+
+  next();
 };
 
-const validateStatus = (status, next) => {
-  const statusType = ["booked", "seated", "finished", "cancelled"];
-  if (!statusType.includes(status)) {
-    next({
-      status: 400,
-      message: "Invalid status",
-    });
-  }
-};
+//checks if reservation exists
+const checkReservation = async (req, res, next) => {
+  const { table_id } = req.params;
+  const { reservation_id } = req.body.data;
 
-const checkReservation = async (reservation_id, table_id, next) => {
   if (!reservation_id) next({ status: 400, messgae: "Invalid reservation id" });
 
   const reservation = await getReservationById(reservation_id);
@@ -70,7 +71,12 @@ const checkReservation = async (reservation_id, table_id, next) => {
       message: `Reservation ${reservation_id} not found.`,
     });
 
-  validateStatus(reservation.status, next);
+  if (!statusType.includes(reservation.status)) {
+    next({
+      status: 400,
+      message: "Invalid status",
+    });
+  }
 
   const table = await service.getById(table_id);
   if (!table.capacity)
@@ -84,18 +90,14 @@ const checkReservation = async (reservation_id, table_id, next) => {
       status: 400,
       message: `Reservation with ${reservation.people} people exceeds table capaity`,
     });
+
+  next();
 };
 
 const updateTableStatus = async (req, res, next) => {
   const { table_id } = req.params;
 
   const { reservation_id } = req.body.data;
-
-  //checks if table exists
-  tableExists(table_id, next);
-
-  //checks if resevation exist
-  checkReservation(reservation_id, table_id, next);
 
   const data = await service.update(table_id, reservation_id);
 
@@ -105,12 +107,6 @@ const updateTableStatus = async (req, res, next) => {
 const finishTable = async (req, res, next) => {
   const { table_id } = req.params;
   const { reservation_id } = req.body.data;
-
-  //checks if table exists
-  tableExists(table_id, next);
-
-  //checks if resevation exist
-  checkReservation(reservation_id, table_id, next);
 
   const data = await service.finish(table_id, reservation_id);
   res.json({ data: { reservation_id: data } });
@@ -126,7 +122,15 @@ const getTableById = async (req, res, next) => {
 module.exports = {
   list: asyncErrorBoundary(list),
   createTable: asyncErrorBoundary(createTable),
-  updateTableStatus: asyncErrorBoundary(updateTableStatus),
-  finishTable: asyncErrorBoundary(finishTable),
+  updateTableStatus: [
+    asyncErrorBoundary(tableExists),
+    asyncErrorBoundary(checkReservation),
+    asyncErrorBoundary(updateTableStatus),
+  ],
+  finishTable: [
+    asyncErrorBoundary(tableExists),
+    asyncErrorBoundary(checkReservation),
+    asyncErrorBoundary(finishTable),
+  ],
   getTableById: asyncErrorBoundary(getTableById),
 };

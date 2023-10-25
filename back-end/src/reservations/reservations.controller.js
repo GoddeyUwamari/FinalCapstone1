@@ -9,9 +9,14 @@ function asDateString(date) {
     .padStart(2, "0")}-${date.getDate().toString(10).padStart(2, "0")}`;
 }
 
-const handleDateValidation = (date, next) => {
+const statusType = ["booked", "seated", "finished", "cancelled"];
+
+// Date validation
+const handleDateValidation = (req, res, next) => {
+  const { reservation_date } = req.body.data;
+
   const currentDate = asDateString(new Date());
-  const dateArr = date.split("-");
+  const dateArr = reservation_date.split("-");
   const reservationDate = new Date(dateArr[0], dateArr[1] - 1, dateArr[2]);
   const isTuesday = fns.format(reservationDate, "eee") === "Tue";
 
@@ -20,6 +25,8 @@ const handleDateValidation = (date, next) => {
 
   if (isTuesday)
     next({ status: 400, message: "Reservations are closed on Tuesday" });
+
+  next();
 };
 
 const getHourAndMinFromTime = (time) => {
@@ -29,10 +36,13 @@ const getHourAndMinFromTime = (time) => {
   return { hour, min };
 };
 
-const handleTimeValidation = (time, next) => {
+// Time validation
+const handleTimeValidation = (req, res, next) => {
+  const { reservation_time } = req.body.data;
+
   const openingTime = new Date().setHours(10, 30).toString();
   const closingTime = new Date().setHours(21, 30).toString();
-  const timeObj = getHourAndMinFromTime(time);
+  const timeObj = getHourAndMinFromTime(reservation_time);
   const reservationTime = new Date().setHours(timeObj.hour, timeObj.min);
 
   if (reservationTime < openingTime || reservationTime > closingTime)
@@ -40,16 +50,8 @@ const handleTimeValidation = (time, next) => {
       status: 400,
       message: `Reservation hours is from ${openingTime}AM to ${closingTime}PM`,
     });
-};
 
-const validateStatus = (status, next) => {
-  const statusType = ["booked", "seated", "finished", "cancelled"];
-  if (!statusType.includes(status)) {
-    next({
-      status: 400,
-      message: "Invalid status",
-    });
-  }
+  next();
 };
 
 // List all reservations
@@ -107,12 +109,6 @@ async function createReservation(req, res, next) {
       next({ status: 400, message: "No reservation" });
     }
 
-    // Date validation
-    handleDateValidation(reservation.reservation_date, next);
-
-    // // Time validation
-    handleTimeValidation(reservation.reservation_time, next);
-
     // Insert the reservation into the database
     const reservationData = await service.create(reservation);
 
@@ -126,11 +122,11 @@ async function createReservation(req, res, next) {
 async function editReservation(req, res, next) {
   try {
     // Validate the input using express-validator
-    // const results = validationResult(req.body);
+    const results = validationResult(req.body);
 
-    // if (!results.isEmpty()) {
-    //   next({ status: 400, message: results.array() });
-    // }
+    if (!results.isEmpty()) {
+      next({ status: 400, message: results.array() });
+    }
 
     const { reservation_id } = req.params;
 
@@ -147,12 +143,6 @@ async function editReservation(req, res, next) {
       people,
       status,
     } = req.body.data;
-
-    // Date validation
-    handleDateValidation(reservation_date, next);
-
-    // Time validation
-    handleTimeValidation(reservation_time, next);
 
     // Update the reservation in the database
     const reservation = await service.updatedReservation(reservation_id, {
@@ -195,10 +185,15 @@ async function updateStatus(req, res, next) {
     const { reservation_id } = req.params;
     const { status } = req.body.data;
 
-    validateStatus(status, next);
-
     if (!reservation_id)
       next({ status: 400, message: `Invalid reservation id` });
+
+    if (!statusType.includes(status)) {
+      next({
+        status: 400,
+        message: "Invalid status",
+      });
+    }
 
     const result = await service.changeStatus(status, reservation_id);
 
@@ -211,8 +206,16 @@ async function updateStatus(req, res, next) {
 module.exports = {
   list: asyncErrorBoundary(list),
   getReservationById: asyncErrorBoundary(getReservationById),
-  createReservation: asyncErrorBoundary(createReservation),
-  editReservation: asyncErrorBoundary(editReservation),
+  createReservation: [
+    asyncErrorBoundary(handleDateValidation),
+    asyncErrorBoundary(handleTimeValidation),
+    asyncErrorBoundary(createReservation),
+  ],
+  editReservation: [
+    asyncErrorBoundary(handleDateValidation),
+    asyncErrorBoundary(handleTimeValidation),
+    asyncErrorBoundary(editReservation),
+  ],
   removeReservation: asyncErrorBoundary(removeReservation),
   updateStatus: asyncErrorBoundary(updateStatus),
 };
