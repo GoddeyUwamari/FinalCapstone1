@@ -23,16 +23,17 @@ const AssignSeat = () => {
     seat: "",
   };
 
-  const handleFormSubmit = (values) => {
+  const handleFormSubmit = async (values) => {
     const controller = new AbortController();
+
     try {
       if (values) {
-        const response = updateTableStatus(
+        return await updateTableStatus(
           reservation_id,
           values.seat,
           async (isSuccessfull) => {
-            if (isSuccessfull) {
-              const res = await updateReservationStatus(
+            if (isSuccessfull)
+              return await updateReservationStatus(
                 "seated",
                 reservation_id,
                 (isSubmitted) => {
@@ -43,20 +44,14 @@ const AssignSeat = () => {
                 },
                 controller.signal
               );
-
-              if (!res) throw new Error(res.error);
-              if (res) return res;
-            }
           },
           controller.signal
         );
-
-        if (!response) throw new Error(response.error);
-        if (response) return response;
       }
     } catch (error) {
-      toast.error(error.error);
+      toast.error(error.message);
     }
+
     return () => controller.abort();
   };
 

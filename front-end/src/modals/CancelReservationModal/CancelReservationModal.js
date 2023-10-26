@@ -30,7 +30,9 @@ const CancelReservationModal = ({
           controller.signal
         );
       }
-    } catch (error) {}
+    } catch (error) {
+      toast.error(error.message);
+    }
     return () => controller.abort();
   }, [reservation, handleClose, refresh]);
 

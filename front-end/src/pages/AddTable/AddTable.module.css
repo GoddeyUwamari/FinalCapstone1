@@ -1,39 +1,38 @@
-.CreateTableModal {
+.AddTable {
   width: 40%;
-  padding: 24px 32px;
-  display: grid;
-  place-items: center;
+  margin: 60px auto;
 }
 
-.CreateTableModal_title {
+.AddTable_title {
   font-size: 24px;
   font-weight: 500;
   line-height: 28px;
   letter-spacing: -0.1px;
   text-align: center;
   margin-bottom: 32px;
+  padding: 16px 0;
+  border-bottom: 1px solid #c6c6c6;
 }
 
-.CreateTableModal_form {
+.AddTable_form {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  width: 90%;
 }
 
-.CreateTableModal_form_row {
+.AddTable_form_row {
   display: grid;
   gap: 4px;
 }
 
-.CreateTableModal_form_row_label {
+.AddTable_form_row_label {
   font-size: 14px;
   font-weight: 500;
   line-height: 20px;
   letter-spacing: -0.12px;
 }
 
-.CreateTableModal_form_row_input {
+.AddTable_form_row_input {
   border: 1px solid #a7a7a7;
   border-radius: 4px;
   padding: 7px;
@@ -42,14 +41,14 @@
   width: 100%;
 }
 
-.CreateTableModal_form_btns {
+.AddTable_form_btns {
   display: flex;
   gap: 16px;
   justify-content: flex-end;
   margin-top: 24px;
 }
 
-.CreateTableModal_form_btns > button {
+.AddTable_form_btns > button {
   border: none;
   cursor: pointer;
   font-size: 14px;
@@ -58,18 +57,18 @@
   padding: 10px 24px;
   border-radius: 8px;
   font-weight: 500;
-  min-width: 150px;
+  width: 100%;
 }
 
-.CreateTableModal_form_btns > button:first-of-type {
+.AddTable_form_btns > button:first-of-type {
   background-color: #a7a7a7;
 }
 
-.CreateTableModal_form_btns > button:hover {
+.AddTable_form_btns > button:hover {
   opacity: 0.9;
 }
 
-.CreateTableModal_form_btns > button:disabled {
+.AddTable_form_btns > button:disabled {
   cursor: not-allowed;
   background-color: #a7a7a7;
 }

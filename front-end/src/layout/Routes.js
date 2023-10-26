@@ -3,11 +3,17 @@ import React from "react";
 import NotFound from "./NotFound";
 import Layout from "./Layout/Layout";
 import { useRoutes, Navigate } from "react-router";
-import { dashboardPageSlug, reservationPagePath } from "../data/pageRoutes";
+import {
+  addReservationPagePath,
+  addTablePagePath,
+  dashboardPageSlug,
+  reservationPagePath,
+} from "../data/pageRoutes";
 import { PAGE_CONFIG } from "../data/pageConfig";
 import EditReservation from "../pages/EditReservation";
 import AssignSeat from "../pages/AssignSeat";
 import AddReservation from "../pages/AddReservation";
+import AddTable from "../pages/AddTable";
 
 const Routes = () => {
   return useRoutes([
@@ -34,8 +40,12 @@ const Routes = () => {
       path: `${reservationPagePath}/:reservation_id/seat`,
     },
     {
+      element: <AddTable />,
+      path: addTablePagePath,
+    },
+    {
       element: <AddReservation />,
-      path: `${reservationPagePath}/new`,
+      path: addReservationPagePath,
     },
     {
       path: "/*",

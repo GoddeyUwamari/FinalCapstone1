@@ -3,7 +3,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { ActionButton, Sidebar } from "../../components";
 
 import styles from "./Layout.module.css";
-import { reservationPagePath } from "../../data/pageRoutes";
+import { addReservationPagePath } from "../../data/pageRoutes";
 
 const Layout = () => {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ const Layout = () => {
         <Outlet />
       </div>
 
-      <ActionButton action={() => navigate(`${reservationPagePath}/new`)} />
+      <ActionButton action={() => navigate(addReservationPagePath)} />
     </section>
   );
 };

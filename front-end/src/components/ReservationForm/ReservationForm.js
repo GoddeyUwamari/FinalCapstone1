@@ -9,7 +9,7 @@ import { formatAsDate, today } from "../../utils/date-time";
 
 import styles from "./ReservationForm.module.css";
 
-const ReservationForm = ({ type, data, refresh }) => {
+const ReservationForm = ({ type, data }) => {
   const navigate = useNavigate();
   const isEdit = type === "edit";
 
@@ -28,14 +28,13 @@ const ReservationForm = ({ type, data, refresh }) => {
   };
 
   const handleNavigation = (date) => {
-    refresh();
     navigate({
       pathname: dashboardPagePath,
       search: `date=${date}`,
     });
   };
 
-  const handleFormSubmit = (values) => {
+  const handleFormSubmit = async (values) => {
     const controller = new AbortController();
 
     try {
@@ -45,7 +44,7 @@ const ReservationForm = ({ type, data, refresh }) => {
       };
 
       if (type !== "edit")
-        return postReservation(
+        return await postReservation(
           formValues,
           (isSuccessful) => {
             if (isSuccessful) {
@@ -59,7 +58,7 @@ const ReservationForm = ({ type, data, refresh }) => {
         );
 
       if (type === "edit")
-        return updateReservation(
+        return await updateReservation(
           formValues,
           data.reservation_id,
           (isSuccessful) => {

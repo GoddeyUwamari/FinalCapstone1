@@ -29,11 +29,7 @@ const EditReservation = () => {
 
   return (
     <section className={styles.EditReservation}>
-      <ReservationForm
-        type={"edit"}
-        data={reservation}
-        refresh={handleFetchReservation}
-      />
+      <ReservationForm type={"edit"} data={reservation} />
     </section>
   );
 };

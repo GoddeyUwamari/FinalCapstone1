@@ -1,28 +1,27 @@
 import React from "react";
+import { useNavigate } from "react-router";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
-import Modal from "../../components/Modal";
 import { createTableValidationSchema } from "./validation";
 import { postTable } from "../../utils/api";
 
-import styles from "./CreateTableModal.module.css";
+import styles from "./AddTable.module.css";
+import { dashboardPagePath } from "../../data/pageRoutes";
 
-const CreateTableModal = ({ show, handleClose, refresh }) => {
+const AddTable = () => {
+  const navigate = useNavigate();
   const initialValues = {
     table_name: "",
     capacity: "",
   };
 
-  const handleFormSubmission = (values) => {
+  const handleFormSubmission = async (values) => {
     try {
       if (values)
-        return postTable(values, (isSuccessful) => {
+        return await postTable(values, (isSuccessful) => {
           if (isSuccessful) {
-            refresh();
             toast.success("Table added successfully");
-            handleClose();
-          } else {
-            toast.error("Failed to add table");
+            navigate(dashboardPagePath);
           }
         });
     } catch (error) {
@@ -31,12 +30,8 @@ const CreateTableModal = ({ show, handleClose, refresh }) => {
   };
 
   return (
-    <Modal
-      show={show}
-      handleClose={handleClose}
-      className={styles.CreateTableModal}
-    >
-      <h3 className={styles.CreateTableModal_title}>Create Table</h3>
+    <section className={styles.AddTable}>
+      <h3 className={styles.AddTable_title}>Create Table</h3>
       <Formik
         initialValues={initialValues}
         onSubmit={handleFormSubmission}
@@ -52,11 +47,11 @@ const CreateTableModal = ({ show, handleClose, refresh }) => {
           handleChange,
           handleBlur,
         }) => (
-          <form className={styles.CreateTableModal_form}>
-            <div className={styles.CreateTableModal_form_row}>
+          <form className={styles.AddTable_form}>
+            <div className={styles.AddTable_form_row}>
               <label
                 htmlFor="table_name"
-                className={styles.CreateTableModal_form_row_label}
+                className={styles.AddTable_form_row_label}
               >
                 Table name
               </label>
@@ -67,17 +62,17 @@ const CreateTableModal = ({ show, handleClose, refresh }) => {
                 value={values.table_name}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                className={styles.CreateTableModal_form_row_input}
+                className={styles.AddTable_form_row_input}
               />
               <p className="alert alert-danger">
                 {touched.table_name ? errors.table_name : null}
               </p>
             </div>
 
-            <div className={styles.CreateTableModal_form_row}>
+            <div className={styles.AddTable_form_row}>
               <label
                 htmlFor="capacity"
-                className={styles.CreateTableModal_form_row_label}
+                className={styles.AddTable_form_row_label}
               >
                 Capacity
               </label>
@@ -88,15 +83,15 @@ const CreateTableModal = ({ show, handleClose, refresh }) => {
                 value={values.capacity}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                className={styles.CreateTableModal_form_row_input}
+                className={styles.AddTable_form_row_input}
               />
               <p className="alert alert-danger">
                 {touched.capacity ? errors.capacity : null}
               </p>
             </div>
 
-            <div className={styles.CreateTableModal_form_btns}>
-              <button onClick={handleClose}>Close</button>
+            <div className={styles.AddTable_form_btns}>
+              <button onClick={() => navigate(dashboardPagePath)}>Close</button>
               <button
                 onClick={handleSubmit}
                 type="submit"
@@ -108,8 +103,8 @@ const CreateTableModal = ({ show, handleClose, refresh }) => {
           </form>
         )}
       </Formik>
-    </Modal>
+    </section>
   );
 };
 
-export default CreateTableModal;
+export default AddTable;

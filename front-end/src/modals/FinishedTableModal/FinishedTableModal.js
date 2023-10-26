@@ -9,7 +9,7 @@ import {
 
 import styles from "./FinishedTableModal.module.css";
 
-const FinishedTableModal = ({ table_id, show, handleClose }) => {
+const FinishedTableModal = ({ table_id, show, handleClose, refresh }) => {
   const [table, setTable] = React.useState(null);
 
   const handleFinish = React.useCallback(async () => {
@@ -26,6 +26,7 @@ const FinishedTableModal = ({ table_id, show, handleClose }) => {
                 table.reservation_id,
                 (isUpdated) => {
                   if (isUpdated) {
+                    refresh();
                     toast.success("Table finished successfully");
                     handleClose();
                   } else {
@@ -42,10 +43,10 @@ const FinishedTableModal = ({ table_id, show, handleClose }) => {
         );
       }
     } catch (error) {
-      toast.error(error);
+      toast.error(error.message);
     }
     return () => controller.abort();
-  }, [table, table_id, handleClose]);
+  }, [table, table_id, handleClose, refresh]);
 
   const handleFetchTable = React.useCallback(
     async (signal) => {

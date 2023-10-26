@@ -21,12 +21,12 @@ const handleDateValidation = (req, res, next) => {
   const isTuesday = fns.format(reservationDate, "eee") === "Tue";
 
   if (reservationDate < currentDate)
-    next({ status: 400, message: "Invalid date" });
+    return next({ status: 400, message: "Invalid date" });
 
   if (isTuesday)
-    next({ status: 400, message: "Reservations are closed on Tuesday" });
+    return next({ status: 400, message: "Reservations are closed on Tuesday" });
 
-  next();
+  return next();
 };
 
 const getHourAndMinFromTime = (time) => {
@@ -46,12 +46,12 @@ const handleTimeValidation = (req, res, next) => {
   const reservationTime = new Date().setHours(timeObj.hour, timeObj.min);
 
   if (reservationTime < openingTime || reservationTime > closingTime)
-    next({
+    return next({
       status: 400,
       message: `Reservation hours is from ${openingTime}AM to ${closingTime}PM`,
     });
 
-  next();
+  return next();
 };
 
 // List all reservations
@@ -63,17 +63,17 @@ async function list(req, res, next) {
 
     if (mobile_number) {
       const result = await service.search(mobile_number);
-      res.json({ data: result });
+      return res.json({ data: result });
     }
 
     if (date) {
       const result = await service.listByDate(date);
-      res.json({ data: result });
+      return res.json({ data: result });
     }
 
     const reservations = await service.list();
 
-    res.json({
+    return res.json({
       data: reservations,
     });
   } catch (error) {
@@ -88,9 +88,9 @@ async function getReservationById(req, res, next) {
 
     const reservation = await service.getById(reservation_id);
 
-    res.json({ data: reservation });
+    return res.json({ data: reservation });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 }
 
@@ -101,20 +101,20 @@ async function createReservation(req, res, next) {
     const results = validationResult(req.body);
 
     if (!results.isEmpty()) {
-      next({ status: 400, message: results.array() });
+      return next({ status: 400, message: results.array() });
     }
 
     const reservation = req.body.data;
     if (!reservation) {
-      next({ status: 400, message: "No reservation" });
+      return next({ status: 400, message: "No reservation" });
     }
 
     // Insert the reservation into the database
     const reservationData = await service.create(reservation);
 
-    res.status(201).json({ data: reservationData[0] });
+    return res.status(201).json({ data: reservationData[0] });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 }
 
@@ -125,13 +125,13 @@ async function editReservation(req, res, next) {
     const results = validationResult(req.body);
 
     if (!results.isEmpty()) {
-      next({ status: 400, message: results.array() });
+      return next({ status: 400, message: results.array() });
     }
 
     const { reservation_id } = req.params;
 
     if (!reservation_id) {
-      next({ status: 400, message: "Invalid data id" });
+      return next({ status: 400, message: "Invalid data id" });
     }
 
     const {
@@ -155,9 +155,9 @@ async function editReservation(req, res, next) {
       status,
     });
 
-    res.status(200).json({ data: reservation });
+    return res.status(200).json({ data: reservation });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 }
 
@@ -165,7 +165,8 @@ async function editReservation(req, res, next) {
 async function removeReservation(req, res, next) {
   try {
     const { reservation_id } = req.params;
-    if (!reservation_id) next({ status: 400, message: "Invalid data id" });
+    if (!reservation_id)
+      return next({ status: 400, message: "Invalid data id" });
 
     // Delete the reservation from the database
     const deletedRows = await service.remove(reservation_id);
@@ -174,7 +175,7 @@ async function removeReservation(req, res, next) {
       return res.status(404).json({ error: "Reservation not found" });
     }
 
-    res.status(204).end(); // 204 No Content
+    return res.status(204).end(); // 204 No Content
   } catch (error) {
     next(error);
   }
@@ -186,10 +187,10 @@ async function updateStatus(req, res, next) {
     const { status } = req.body.data;
 
     if (!reservation_id)
-      next({ status: 400, message: `Invalid reservation id` });
+      return next({ status: 400, message: `Invalid reservation id` });
 
     if (!statusType.includes(status)) {
-      next({
+      return next({
         status: 400,
         message: "Invalid status",
       });
@@ -197,9 +198,9 @@ async function updateStatus(req, res, next) {
 
     const result = await service.changeStatus(status, reservation_id);
 
-    res.status(200).json({ data: { status: result } });
+    return res.status(200).json({ data: { status: result } });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 }
 

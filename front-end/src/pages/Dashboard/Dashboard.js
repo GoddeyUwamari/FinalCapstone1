@@ -3,11 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Table } from "../../components";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
-import {
-  FinishedTableModal,
-  CancelReservationModal,
-  CreateTableModal,
-} from "../../modals";
+import { FinishedTableModal, CancelReservationModal } from "../../modals";
 import {
   getReservationsActions,
   getReservationsDataSchema,
@@ -17,7 +13,7 @@ import { next, previous, today } from "../../utils/date-time";
 import { listReservations, fetchTables } from "../../utils/api";
 
 import styles from "./Dashboard.module.css";
-import { dashboardPagePath } from "../../data/pageRoutes";
+import { addTablePagePath, dashboardPagePath } from "../../data/pageRoutes";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -58,7 +54,7 @@ const Dashboard = () => {
 
         if (res) handleStateUpdate({ reservations: res });
       } catch (error) {
-        toast.error("Something went wrong getting reservations");
+        toast.error("Something went wrong fetching reservations");
       }
     },
     [state.date]
@@ -82,8 +78,7 @@ const Dashboard = () => {
         handleStateUpdate({ tables: tableData });
       }
     } catch (error) {
-      toast.error("Something went wrong getting tables");
-      console.log(error);
+      toast.error("Something went wrong fetching tables");
     }
   }, []);
 
@@ -134,21 +129,11 @@ const Dashboard = () => {
         <Table data={state.tables} dataSchema={tableDataSchema} />
         <button
           className={styles.Dashboard_table_btn}
-          onClick={() =>
-            handleStateUpdate({ openModal: true, modalType: "create-table" })
-          }
+          onClick={() => navigate(addTablePagePath)}
         >
           Create Table
         </button>
       </div>
-
-      <CreateTableModal
-        show={state.openModal && state.modalType === "create-table"}
-        handleClose={() =>
-          handleStateUpdate({ openModal: false, modalType: null })
-        }
-        refresh={handleFetchTable}
-      />
 
       <CancelReservationModal
         reservation={state.activeReservation}
@@ -165,6 +150,7 @@ const Dashboard = () => {
         handleClose={() =>
           handleStateUpdate({ openModal: false, modalType: null })
         }
+        refresh={handleFetchTable}
       />
     </section>
   );
