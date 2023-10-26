@@ -91,7 +91,9 @@ const AddTable = () => {
             </div>
 
             <div className={styles.AddTable_form_btns}>
-              <button onClick={() => navigate(dashboardPagePath)}>Close</button>
+              <button onClick={() => navigate(dashboardPagePath)}>
+                Cancel
+              </button>
               <button
                 onClick={handleSubmit}
                 type="submit"

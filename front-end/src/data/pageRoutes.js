@@ -14,7 +14,7 @@ export const searchPageSlug = "search";
 export const searchPagePath = `/${searchPageSlug}`;
 
 // Table
-export const tablePageSlug = "table";
+export const tablePageSlug = "tables";
 export const tablePagePath = `/${tablePageSlug}`;
 
 export const addTablePagePath = `${tablePagePath}/${newPage}`;

@@ -36,22 +36,34 @@ const getHourAndMinFromTime = (time) => {
   return { hour, min };
 };
 
+const getActiveTime = () => {
+  const currentTime = new Date().getTime();
+  const openingTime = new Date().setHours(10, 30);
+  const closingTime = new Date().setHours(21, 30);
+
+  if (currentTime < openingTime) return openingTime;
+  if (currentTime >= openingTime && currentTime <= closingTime)
+    return currentTime;
+  if (currentTime > closingTime) return closingTime;
+};
+
 // Time validation
 const handleTimeValidation = (req, res, next) => {
   const { reservation_time } = req.body.data;
 
-  const openingTime = new Date().setHours(10, 30).toString();
-  const closingTime = new Date().setHours(21, 30).toString();
+  const closingTime = new Date().setHours(21, 30);
   const timeObj = getHourAndMinFromTime(reservation_time);
   const reservationTime = new Date().setHours(timeObj.hour, timeObj.min);
 
-  if (reservationTime < openingTime || reservationTime > closingTime)
+  const activeTime = getActiveTime();
+
+  if (reservationTime <= activeTime && reservationTime >= closingTime)
     return next({
       status: 400,
       message: `Reservation hours is from ${openingTime}AM to ${closingTime}PM`,
     });
 
-  return next();
+  if (reservationTime) return next();
 };
 
 // List all reservations
