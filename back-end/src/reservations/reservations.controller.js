@@ -1,210 +1,222 @@
-const { body, validationResult } = require("express-validator");
-const knex = require("../db/connection");
+const { validationResult } = require("express-validator");
+const asyncErrorBoundary = require("../errors/asyncErrorBoundary");
+const service = require("./reservations.service");
+const fns = require("date-fns");
 
-// List handler for all reservation resources
-async function list(req, res) {
+function asDateString(date) {
+  return `${date.getFullYear().toString(10)}-${(date.getMonth() + 1)
+    .toString(10)
+    .padStart(2, "0")}-${date.getDate().toString(10).padStart(2, "0")}`;
+}
+
+const statusType = ["booked", "seated", "finished", "cancelled"];
+
+// Date validation
+const handleDateValidation = (req, res, next) => {
+  const { reservation_date } = req.body.data;
+
+  const currentDate = asDateString(new Date());
+  const dateArr = reservation_date.split("-");
+  const reservationDate = new Date(dateArr[0], dateArr[1] - 1, dateArr[2]);
+  const isTuesday = fns.format(reservationDate, "eee") === "Tue";
+
+  if (reservationDate < currentDate)
+    return next({ status: 400, message: "Invalid date" });
+
+  if (isTuesday)
+    return next({ status: 400, message: "Reservations are closed on Tuesday" });
+
+  return next();
+};
+
+const getHourAndMinFromTime = (time) => {
+  const timeArray = time.split(":");
+  const hour = timeArray[0];
+  const min = timeArray[1];
+  return { hour, min };
+};
+
+// Time validation
+const handleTimeValidation = (req, res, next) => {
+  const { reservation_time } = req.body.data;
+
+  const openingTime = new Date().setHours(10, 30).toString();
+  const closingTime = new Date().setHours(21, 30).toString();
+  const timeObj = getHourAndMinFromTime(reservation_time);
+  const reservationTime = new Date().setHours(timeObj.hour, timeObj.min);
+
+  if (reservationTime < openingTime || reservationTime > closingTime)
+    return next({
+      status: 400,
+      message: `Reservation hours is from ${openingTime}AM to ${closingTime}PM`,
+    });
+
+  return next();
+};
+
+// List all reservations
+// List reservations by date or mobile number
+async function list(req, res, next) {
   try {
-    const reservations = await knex("reservations").select("*");
-    res.json({
+    const mobile_number = req.query.mobile_number;
+    const date = req.query.date;
+
+    if (mobile_number) {
+      const result = await service.search(mobile_number);
+      return res.json({ data: result });
+    }
+
+    if (date) {
+      const result = await service.listByDate(date);
+      return res.json({ data: result });
+    }
+
+    const reservations = await service.list();
+
+    return res.json({
       data: reservations,
     });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ error: "An error occurred while fetching reservations." });
-  }
-}
-async function getById(req, res, next) {
-  try {
-    const reservationId = req.params.id;
-
-    if (
-      !Number.isInteger(Number(reservationId)) ||
-      Number(reservationId) <= 0
-    ) {
-      return res.status(400).json({ error: "Invalid reservation ID" });
-    }
-
-    const reservation = await knex("reservations")
-      .select("*")
-      .where({ reservation_id: reservationId })
-      .first();
-
-    if (!reservation) {
-      return res.status(404).json({ error: "Reservation not found" });
-    }
-
-    res.json({ data: reservation });
   } catch (error) {
     next(error);
   }
 }
 
-
-async function getByFullNameAndPhoneNumber(req, res) {
+// Handler for single reservation by Id
+async function getReservationById(req, res, next) {
   try {
-    const { full_name, phone_number } = req.params;
+    const { reservation_id } = req.params;
 
-    const reservations = await knex("reservations")
-      .select("*")
-      .where(function () {
-        if (full_name && phone_number) {
-          this.where("full_name", "ilike", `%${full_name}%`).andWhere(
-            "phone_number",
-            phone_number
-          );
-        } else if (full_name) {
-          this.where("full_name", "ilike", `%${full_name}%`);
-        } else if (phone_number) {
-          this.where("phone_number", phone_number);
-        }
-      });
+    const reservation = await service.getById(reservation_id);
 
-    if (reservations.length === 0) {
-      return res.status(404).json({ error: "No reservations found" });
-    }
-
-    res.json({
-      data: reservations,
-    });
+    return res.json({ data: reservation });
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "An error occurred while fetching reservations." });
+    return next(error);
   }
 }
 
-// Create a reservation
-async function create(req, res, next) {
-  // Validate the input using express-validator
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
+// Create reservation
+async function createReservation(req, res, next) {
   try {
-    const {
-      full_name,
-      email,
-      phone_number,
-      checkIn_date,
-      checkOut_date,
-      type_of_room,
-      number_of_guest,
-      number_of_rooms,
-    } = req.body;
+    // Validate the input using express-validator
+    const results = validationResult(req.body);
+
+    if (!results.isEmpty()) {
+      return next({ status: 400, message: results.array() });
+    }
+
+    const reservation = req.body.data;
+    if (!reservation) {
+      return next({ status: 400, message: "No reservation" });
+    }
 
     // Insert the reservation into the database
-    const [reservation] = await knex("reservations")
-      .insert({
-        full_name,
-        email,
-        phone_number,
-        checkIn_date,
-        checkOut_date,
-        type_of_room,
-        number_of_guest,
-        number_of_rooms,
-      })
-      .returning("*");
+    const reservationData = await service.create(reservation);
 
-    res.status(201).json({ data: reservation });
+    return res.status(201).json({ data: reservationData[0] });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 }
 
-async function update(req, res, next) {
-  // Validate the input using express-validator
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
+// Update reservation
+async function editReservation(req, res, next) {
   try {
-    const reservationId = req.params.reservation_id; // Corrected line
-    console.log(reservationId);
-    const {
-      full_name,
-      email,
-      phone_number,
-      checkIn_date,
-      checkOut_date,
-      type_of_room,
-      number_of_guest,
-      number_of_rooms,
-    } = req.body;
+    // Validate the input using express-validator
+    const results = validationResult(req.body);
 
-    // Update the reservation in the database
-    const [updatedReservation] = await knex("reservations")
-      .where({ reservation_id: reservationId }) // Use the correct column name here
-      .update({
-        full_name: full_name,
-        email: email,
-        phone_number: phone_number,
-        checkIn_date: checkIn_date,
-        checkOut_date: checkOut_date,
-        type_of_room: type_of_room,
-        number_of_guest: number_of_guest,
-        number_of_rooms: number_of_rooms,
-      })
-      .returning("*");
-
-    if (!updatedReservation) {
-      return res.status(404).json({ error: "Reservation not found" });
+    if (!results.isEmpty()) {
+      return next({ status: 400, message: results.array() });
     }
 
-    res.status(200).json({ data: updatedReservation });
+    const { reservation_id } = req.params;
+
+    if (!reservation_id) {
+      return next({ status: 400, message: "Invalid data id" });
+    }
+
+    const {
+      first_name,
+      last_name,
+      mobile_number,
+      reservation_date,
+      reservation_time,
+      people,
+      status,
+    } = req.body.data;
+
+    // Update the reservation in the database
+    const reservation = await service.updatedReservation(reservation_id, {
+      first_name,
+      last_name,
+      mobile_number,
+      reservation_date,
+      reservation_time,
+      people,
+      status,
+    });
+
+    return res.status(200).json({ data: reservation });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 }
 
-async function remove(req, res, next) {
+// Delete reservation
+async function removeReservation(req, res, next) {
   try {
-    const reservationId = req.params.reservation_id; // Corrected line
+    const { reservation_id } = req.params;
+    if (!reservation_id)
+      return next({ status: 400, message: "Invalid data id" });
 
     // Delete the reservation from the database
-    const deletedRows = await knex("reservations")
-      .where({ reservation_id: reservationId })
-      .del();
+    const deletedRows = await service.remove(reservation_id);
 
     if (!deletedRows) {
       return res.status(404).json({ error: "Reservation not found" });
     }
 
-    res.status(204).end(); // 204 No Content
+    return res.status(204).end(); // 204 No Content
   } catch (error) {
     next(error);
   }
 }
 
+async function updateStatus(req, res, next) {
+  try {
+    const { reservation_id } = req.params;
+    const { status } = req.body.data;
+
+    if (!reservation_id)
+      return next({ status: 400, message: `Invalid reservation id` });
+
+    if (!statusType.includes(status)) {
+      return next({
+        status: 400,
+        message: "Invalid status",
+      });
+    }
+
+    const result = await service.changeStatus(status, reservation_id);
+
+    return res.status(200).json({ data: { status: result } });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
-  list,
-  getById,
-  getByFullNameAndPhoneNumber,
-  create: [
-    body("full_name").notEmpty().trim(),
-    body("email").isEmail(),
-    body("phone_number").isMobilePhone(),
-    body("checkIn_date").isISO8601(),
-    body("checkOut_date").isISO8601(),
-    body("type_of_room").notEmpty().trim(),
-    body("number_of_guest").isInt({ min: 1 }),
-    body("number_of_rooms").isInt({ min: 1 }),
-    create, // Call the create function after validation
+  list: asyncErrorBoundary(list),
+  getReservationById: asyncErrorBoundary(getReservationById),
+  createReservation: [
+    asyncErrorBoundary(handleDateValidation),
+    asyncErrorBoundary(handleTimeValidation),
+    asyncErrorBoundary(createReservation),
   ],
-  update: [
-    body("full_name").notEmpty().trim(),
-    body("email").isEmail(),
-    body("phone_number").isMobilePhone(),
-    body("checkIn_date").isISO8601(),
-    body("checkOut_date").isISO8601(),
-    body("type_of_room").notEmpty().trim(),
-    body("number_of_guest").isInt({ min: 1 }),
-    body("number_of_rooms").isInt({ min: 1 }),
-    update,
+  editReservation: [
+    asyncErrorBoundary(handleDateValidation),
+    asyncErrorBoundary(handleTimeValidation),
+    asyncErrorBoundary(editReservation),
   ],
-  getById,
-  remove,
+  removeReservation: asyncErrorBoundary(removeReservation),
+  updateStatus: asyncErrorBoundary(updateStatus),
 };

@@ -1,0 +1,74 @@
+.AddTable {
+  width: 40%;
+  margin: 60px auto;
+}
+
+.AddTable_title {
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 28px;
+  letter-spacing: -0.1px;
+  text-align: center;
+  margin-bottom: 32px;
+  padding: 16px 0;
+  border-bottom: 1px solid #c6c6c6;
+}
+
+.AddTable_form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.AddTable_form_row {
+  display: grid;
+  gap: 4px;
+}
+
+.AddTable_form_row_label {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.12px;
+}
+
+.AddTable_form_row_input {
+  border: 1px solid #a7a7a7;
+  border-radius: 4px;
+  padding: 7px;
+  outline: none;
+  font-size: 14px;
+  width: 100%;
+}
+
+.AddTable_form_btns {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.AddTable_form_btns > button {
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #fff;
+  background-color: #83092e;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  width: 100%;
+}
+
+.AddTable_form_btns > button:first-of-type {
+  background-color: #a7a7a7;
+}
+
+.AddTable_form_btns > button:hover {
+  opacity: 0.9;
+}
+
+.AddTable_form_btns > button:disabled {
+  cursor: not-allowed;
+  background-color: #a7a7a7;
+}

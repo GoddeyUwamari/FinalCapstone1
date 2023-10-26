@@ -1,0 +1,13 @@
+.Layout {
+  display: flex;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+.Layout_content {
+  width: 100%;
+  margin-left: 250px;
+  padding: 48px 24px;
+  overflow-y: scroll;
+}

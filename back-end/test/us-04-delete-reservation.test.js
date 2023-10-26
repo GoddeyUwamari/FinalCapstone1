@@ -1,8 +1,9 @@
 const request = require("supertest");
+
 const app = require("../src/app");
 const knex = require("../src/db/connection");
 
-describe("Delete Reservation API Endpoint", () => {
+describe("US-04 - Seat reservation", () => {
   beforeAll(() => {
     return knex.migrate
       .forceFreeMigrationsLock()
@@ -18,46 +19,260 @@ describe("Delete Reservation API Endpoint", () => {
     return await knex.migrate.rollback(null, true).then(() => knex.destroy());
   });
 
-  // jest.setTimeout(30000); // Set the timeout to 30 seconds
+  describe("Create and list tables", () => {
+    describe("GET /tables/:table_id", () => {
+      test("returns 404 for non-existent id", async () => {
+        const response = await request(app)
+          .get("/tables/99999")
+          .set("Accept", "application/json");
 
-  test("deletes a reservation if it exists", async () => {
-    const testReservation = {
-      full_name: "Test Reservation",
-      email: "test@example.com",
-      phone_number: "1234567890",
-      checkIn_date: "2023-08-24",
-      checkOut_date: "2023-08-29",
-      type_of_room: "Standard",
-      number_of_guest: 1,
-      number_of_rooms: 1,
-    };
-    const [createdReservation] = await knex("reservations")
-      .insert(testReservation)
-      .returning("*");
+        expect(response.body.error).toContain("99999");
+        expect(response.status).toBe(404);
+      });
+    });
 
-    // Make a request to delete the reservation
-    const response = await request(app).delete(
-      `/reservations/${createdReservation.reservation_id}`
-    );
+    describe("POST /tables", () => {
+      test("returns 400 if data is missing", async () => {
+        const response = await request(app)
+          .post("/tables")
+          .set("Accept", "application/json")
+          .send({ datum: {} });
 
-    // Check if the response status is 204 No Content
-    expect(response.status).toBe(204);
+        expect(response.body.error).toBeDefined();
+        expect(response.status).toBe(400);
+      });
 
-    // Check if the reservation is actually deleted from the database
-    const deletedReservation = await knex("reservations")
-      .where({ reservation_id: createdReservation.reservation_id })
-      .first();
-    expect(deletedReservation).toBeUndefined();
+      test("returns 400 if table_name is missing", async () => {
+        const data = {
+          capacity: 1,
+        };
+
+        const response = await request(app)
+          .post("/tables")
+          .set("Accept", "application/json")
+          .send({ data });
+
+        expect(response.body.error).toContain("table_name");
+        expect(response.status).toBe(400);
+      });
+
+      test("returns 400 if table_name is empty", async () => {
+        const data = {
+          table_name: "",
+          capacity: 1,
+        };
+
+        const response = await request(app)
+          .post("/tables")
+          .set("Accept", "application/json")
+          .send({ data });
+
+        expect(response.body.error).toContain("table_name");
+        expect(response.status).toBe(400);
+      });
+
+      test("returns 400 if table_name is one character", async () => {
+        const data = {
+          table_name: "A",
+          capacity: 1,
+        };
+
+        const response = await request(app)
+          .post("/tables")
+          .set("Accept", "application/json")
+          .send({ data });
+
+        expect(response.body.error).toContain("table_name");
+        expect(response.status).toBe(400);
+      });
+
+      test("returns 400 if capacity is missing", async () => {
+        const data = {
+          table_name: "table name",
+        };
+
+        const response = await request(app)
+          .post("/tables")
+          .set("Accept", "application/json")
+          .send({ data });
+
+        expect(response.body.error).toContain("capacity");
+        expect(response.status).toBe(400);
+      });
+
+      test("returns 400 if capacity is zero", async () => {
+        const data = {
+          table_name: "table name",
+          capacity: 0,
+        };
+
+        const response = await request(app)
+          .post("/tables")
+          .set("Accept", "application/json")
+          .send({ data });
+
+        expect(response.body.error).toContain("capacity");
+        expect(response.status).toBe(400);
+      });
+
+      test("returns 400 if capacity is not a number", async () => {
+        const data = {
+          table_name: "table name",
+          capacity: "2",
+        };
+
+        const response = await request(app)
+          .post("/tables")
+          .set("Accept", "application/json")
+          .send({ data });
+
+        expect(response.body.error).toContain("capacity");
+        expect(response.status).toBe(400);
+      });
+
+      test("returns 201 if table is created", async () => {
+        const data = {
+          table_name: "table-name",
+          capacity: 1,
+        };
+
+        const response = await request(app)
+          .post("/tables")
+          .set("Accept", "application/json")
+          .send({ data });
+
+        expect(response.body.error).toBeUndefined();
+        expect(response.body.data).toEqual(expect.objectContaining(data));
+        expect(response.status).toBe(201);
+      });
+    });
+
+    describe("GET /tables", () => {
+      test("returns all tables sorted by table name", async () => {
+        const response = await request(app)
+          .get("/tables")
+          .set("Accept", "application/json");
+
+        expect(response.body.error).toBeUndefined();
+        expect(response.body.data).toHaveLength(4);
+        expect(response.body.data[0].table_name).toBe("#1");
+        expect(response.body.data[1].table_name).toBe("#2");
+        expect(response.body.data[2].table_name).toBe("Bar #1");
+        expect(response.body.data[3].table_name).toBe("Bar #2");
+        expect(response.status).toBe(200);
+      });
+    });
   });
 
-  test("returns an error if reservation with ID does not exist", async () => {
-    // Make a request to delete a reservation with a non-existing ID
-    const response = await request(app).delete("/reservations/12345");
+  describe("Read reservation", () => {
+    describe("GET /reservations/:reservation_Id", () => {
+      test("returns 200 for an existing id", async () => {
+        const response = await request(app)
+          .get("/reservations/1")
+          .set("Accept", "application/json");
 
-    // Check if the response status is 404 Not Found
-    expect(response.status).toBe(404);
+        expect(response.body.error).toBeUndefined();
+        expect(response.body.data.reservation_id).toBe(1);
+        expect(response.status).toBe(200);
+      });
+    });
+  });
 
-    // Check if the response body contains an error message
-    expect(response.body.error).toBe("Reservation not found");
+  describe("Seat reservation", () => {
+    let barTableOne;
+    let tableOne;
+
+    beforeEach(async () => {
+      barTableOne = await knex("tables").where("table_name", "Bar #1").first();
+      tableOne = await knex("tables").where("table_name", "#1").first();
+    });
+
+    describe("PUT /tables/:table_id/seat", () => {
+      test("returns 400 if data is missing", async () => {
+        expect(tableOne).not.toBeUndefined();
+
+        const response = await request(app)
+          .put(`/tables/${tableOne.table_id}/seat`)
+          .set("Accept", "application/json")
+          .send({ datum: {} });
+
+        expect(response.body.error).toBeDefined();
+        expect(response.status).toBe(400);
+      });
+
+      test("returns 400 if reservation_id is missing", async () => {
+        expect(tableOne).not.toBeUndefined();
+        const data = {};
+
+        const response = await request(app)
+          .put(`/tables/${tableOne.table_id}/seat`)
+          .set("Accept", "application/json")
+          .send({ data });
+
+        expect(response.body.error).toContain("reservation_id");
+        expect(response.status).toBe(400);
+      });
+
+      test("returns 404 if reservation_id does not exist", async () => {
+        expect(tableOne).not.toBeUndefined();
+
+        const data = {
+          reservation_id: 999,
+        };
+
+        const response = await request(app)
+          .put(`/tables/${tableOne.table_id}/seat`)
+          .set("Accept", "application/json")
+          .send({ data });
+
+        expect(response.body.error).toContain("999");
+        expect(response.status).toBe(404);
+      });
+
+      test("returns 200 if table has sufficient capacity", async () => {
+        expect(tableOne).not.toBeUndefined();
+
+        const response = await request(app)
+          .put(`/tables/${tableOne.table_id}/seat`)
+          .set("Accept", "application/json")
+          .send({ data: { reservation_id: 1 } });
+
+        expect(response.body.error).toBeUndefined();
+        expect(response.status).toBe(200);
+      });
+      test("returns 400 if table does not have sufficient capacity", async () => {
+        expect(barTableOne).not.toBeUndefined();
+
+        const response = await request(app)
+          .put(`/tables/${barTableOne.table_id}/seat`)
+          .set("Accept", "application/json")
+          .send({ data: { reservation_id: 1 } });
+
+        expect(response.body.error).toContain("capacity");
+        expect(response.status).toBe(400);
+      });
+
+      test("returns 400 if table is occupied", async () => {
+        expect(tableOne).not.toBeUndefined();
+
+        // first, occupy the table
+        const occupyResponse = await request(app)
+          .put(`/tables/${tableOne.table_id}/seat`)
+          .set("Accept", "application/json")
+          .send({ data: { reservation_id: 1 } });
+
+        expect(occupyResponse.body.error).toBeUndefined();
+        expect(occupyResponse.status).toBe(200);
+
+        // next, try to assign the table to another reservation
+        const doubleAssignResponse = await request(app)
+          .put(`/tables/${tableOne.table_id}/seat`)
+          .set("Accept", "application/json")
+          .send({ data: { reservation_id: 2 } });
+
+        expect(doubleAssignResponse.body.error).toContain("occupied");
+        expect(doubleAssignResponse.status).toBe(400);
+      });
+    });
   });
 });

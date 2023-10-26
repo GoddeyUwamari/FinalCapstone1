@@ -1,17 +1,20 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
-import { BrowserRouter as Router } from "react-router-dom";
-import { SnackbarProvider } from "notistack";
+
+import "./styles/main.css";
 
 ReactDOM.render(
   <React.StrictMode>
-    <Router>
-      
-      <SnackbarProvider>
-        <App />
-      </SnackbarProvider>
-    </Router>
+    <React.Suspense
+      fallback={
+        <div className="page-loader">
+          <p>Loading...</p>
+        </div>
+      }
+    >
+      <App />
+    </React.Suspense>
   </React.StrictMode>,
   document.getElementById("root")
 );

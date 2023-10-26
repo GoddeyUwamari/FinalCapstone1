@@ -1,112 +1,60 @@
 const request = require("supertest");
-const app = require("../src/app"); // Assuming this is your Express app
-const knex = require("../src/db/connection"); // Import knex here
 
-describe("Reservation API Endpoints", () => {
-  beforeAll(async () => {
-    await knex.migrate.latest();
-    await knex.seed.run();
+const app = require("../src/app");
+const knex = require("../src/db/connection");
+
+describe("US-02 - Create reservations future date", () => {
+  beforeAll(() => {
+    return knex.migrate
+      .forceFreeMigrationsLock()
+      .then(() => knex.migrate.rollback(null, true))
+      .then(() => knex.migrate.latest());
+  });
+
+  beforeEach(() => {
+    return knex.seed.run();
   });
 
   afterAll(async () => {
-    await knex.migrate.rollback(null, true);
-    await knex.destroy();
+    return await knex.migrate.rollback(null, true).then(() => knex.destroy());
   });
 
-  describe("GET /reservations/:id", () => {
-    test("returns a specific reservation by ID if it exists", async () => {
-      // Insert a test reservation into the database
-      const testReservation = {
-        full_name: "Test Reservation",
-        email: "test@example.com",
-        phone_number: "1234567890",
-        checkIn_date: "2023-08-24",
-        checkOut_date: "2023-08-29",
-        type_of_room: "Standard",
-        number_of_guest: 1,
-        number_of_rooms: 1,
+  describe("POST /reservations", () => {
+    test("returns 400 if reservation occurs in the past", async () => {
+      const data = {
+        first_name: "first",
+        last_name: "last",
+        mobile_number: "800-555-1212",
+        reservation_date: "1999-01-01",
+        reservation_time: "17:30",
+        people: 3,
       };
-      const [createdReservation] = await knex("reservations")
-        .insert(testReservation)
-        .returning("*");
 
-      const response = await request(app).get(
-        `/reservations/${createdReservation.reservation_id}`
-      );
+      const response = await request(app)
+        .post("/reservations")
+        .set("Accept", "application/json")
+        .send({ data });
 
-      expect(response.status).toBe(200);
-
-      // Check if the response body contains the correct reservation data
-      expect(response.body.data).toBeDefined();
-      expect(response.body.data.full_name).toBe(testReservation.full_name);
-      expect(response.body.data.email).toBe(testReservation.email);
-      // Additional assertions based on data
-      // ...
+      expect(response.body.error).toContain("future");
+      expect(response.status).toBe(400);
     });
+    test("returns 400 if reservation_date falls on a tuesday", async () => {
+      const data = {
+        first_name: "first",
+        last_name: "last",
+        mobile_number: "800-555-1212",
+        reservation_date: "2030-01-01",
+        reservation_time: "17:30",
+        people: 3,
+      };
 
-    test("returns an error if reservation with ID does not exist", async () => {
-      // Make a request to get a reservation with a non-existing ID
-      const response = await request(app).get("/reservations/12345");
+      const response = await request(app)
+        .post("/reservations")
+        .set("Accept", "application/json")
+        .send({ data });
 
-      // Check if the response status is 404 Not Found
-      expect(response.status).toBe(404);
-
-      // Check if the response body contains an error message
-      expect(response.body.error).toBe("Reservation not found");
-    });
-  });
-   describe("GET /reservations/:full_name/:phone_number", () => {
-     test("returns a list of reservations by full name and phone number", async () => {
-       const testFullName = "Test Reservation";
-       const testPhoneNumber = "1234567890";
-
-       const response = await request(app).get(
-         `/reservations/${testFullName}/${testPhoneNumber}`
-       );
-
-       // Check if the response status is 200 OK
-       expect(response.status).toBe(200);
-
-       // Check if the response body contains a list of reservations
-       expect(response.body.data).toBeDefined();
-       expect(Array.isArray(response.body.data)).toBe(true);
-       // Additional assertions based on data
-       // ...
-
-       // Check if the response body is not empty
-       expect(response.body.data.length).toBeGreaterThan(0);
-     });
-
-     test("returns a 404 if no reservations match full name and phone number", async () => {
-       const nonExistentFullName = "Non Existent Name";
-       const nonExistentPhoneNumber = "9876543210";
-
-       const response = await request(app).get(
-         `/reservations/${nonExistentFullName}/${nonExistentPhoneNumber}`
-       );
-
-       // Check if the response status is 404 Not Found
-       expect(response.status).toBe(404);
-
-       // Check if the response body contains an error message
-       expect(response.body.error).toBe("No reservations found");
-     });
-   });
-  describe("GET /reservations", () => {
-    test("returns a list of reservations", async () => {
-      // Make a request to get the list of reservations
-      const response = await request(app).get("/reservations");
-
-      // Check if the response status is 200 OK
-      expect(response.status).toBe(200);
-
-      // Check if the response body contains a list of reservations
-      expect(response.body.data).toBeDefined();
-      expect(Array.isArray(response.body.data)).toBe(true);
-      // Additional assertions based on data
-      // ...
+      expect(response.body.error).toContain("closed");
+      expect(response.status).toBe(400);
     });
   });
-
-  // Other test cases...
 });
