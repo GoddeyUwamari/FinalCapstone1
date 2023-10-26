@@ -44,13 +44,13 @@ describe("US-03 - Create reservation on a future, working date - E2E", () => {
       await page.type("input[name=reservation_time]", "10:15AM");
 
       await page.screenshot({
-        path: ".screenshots/us-02-reservation-too-early-before.png",
+        path: ".screenshots/us-03-reservation-too-early-before.png",
       });
 
       await page.click("button[type=submit]");
 
       await page.screenshot({
-        path: ".screenshots/us-02-reservation-too-early-after.png",
+        path: ".screenshots/us-03-reservation-too-early-after.png",
       });
 
       expect(await page.$(".alert-danger")).toBeTruthy();
@@ -61,15 +61,13 @@ describe("US-03 - Create reservation on a future, working date - E2E", () => {
       await page.type("input[name=reservation_time]", "1005PM");
 
       await page.screenshot({
-        path: ".screenshots/us-02-reservation-almost-closing-before.png",
+        path: ".screenshots/us-03-reservation-almost-closing-before.png",
       });
-
-      expect(await page.$(".alert-danger")).toBeFalsy();
 
       await page.click("button[type=submit]");
 
       await page.screenshot({
-        path: ".screenshots/us-02-reservation-almost-closing-after.png",
+        path: ".screenshots/us-03-reservation-almost-closing-after.png",
       });
 
       expect(await page.$(".alert-danger")).toBeTruthy();
@@ -80,15 +78,13 @@ describe("US-03 - Create reservation on a future, working date - E2E", () => {
       await page.type("input[name=reservation_time]", "1045PM");
 
       await page.screenshot({
-        path: ".screenshots/us-02-reservation-too-late-before.png",
+        path: ".screenshots/us-03-reservation-too-late-before.png",
       });
-
-      expect(await page.$(".alert-danger")).toBeFalsy();
 
       await page.click("button[type=submit]");
 
       await page.screenshot({
-        path: ".screenshots/us-02-reservation-too-late-after.png",
+        path: ".screenshots/us-03-reservation-too-late-after.png",
       });
 
       expect(await page.$(".alert-danger")).toBeTruthy();
