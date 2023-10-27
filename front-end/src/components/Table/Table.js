@@ -1,7 +1,6 @@
 import React from "react";
 import { uniqueId } from "lodash";
 import { VscBook } from "react-icons/vsc";
-import { BiDotsVerticalRounded } from "react-icons/bi";
 
 import styles from "./Table.module.css";
 
@@ -42,22 +41,17 @@ const Table = ({ data, dataSchema, actions }) => {
                   <td className={styles.Table_body_option}>
                     {getActionVisibility(item).length > 0 ? (
                       <>
-                        <BiDotsVerticalRounded
-                          className={styles.Table_body_option_icon}
-                        />
-                        <div className={styles.Table_body_dropdown}>
-                          {actions.map((action) => {
-                            const isVisible = action.handleVisibility
-                              ? action.handleVisibility(item)
-                              : false;
+                        {actions.map((action) => {
+                          const isVisible = action.handleVisibility
+                            ? action.handleVisibility(item)
+                            : false;
 
-                            return (
-                              <React.Fragment key={uniqueId("table-action_")}>
-                                {isVisible ? action.render(item) : null}
-                              </React.Fragment>
-                            );
-                          })}
-                        </div>
+                          return (
+                            <React.Fragment key={uniqueId("table-action_")}>
+                              {isVisible ? action.render(item) : null}
+                            </React.Fragment>
+                          );
+                        })}
                       </>
                     ) : null}
                   </td>
