@@ -77,7 +77,7 @@ const AddTable = () => {
                 Capacity
               </label>
               <input
-                type="text"
+                type="number"
                 name="capacity"
                 id="capacity"
                 value={values.capacity}
