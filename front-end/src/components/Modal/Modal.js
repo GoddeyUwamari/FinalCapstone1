@@ -1,26 +1,31 @@
 import React from "react";
-import Portal from "../Portal";
-import cx from "classnames";
 
 import styles from "./Modal.module.css";
 
-const Modal = ({ show, handleClose, className, children }) => {
-  const portalId = `modal_${new Date().getTime()}`;
-  return show ? (
-    <Portal
-      portalId={portalId}
-      className={styles.Modal}
-      onClick={() => handleClose && handleClose()}
-    >
-      <div className={cx(styles.Modal_content, className)}>
-        <button className={styles.Modal_content_button} onClick={handleClose}>
-          X
-        </button>
-
+const Modal = ({ show, children, handleClose, action }) => {
+  return (
+    <dialog open={show} className={styles.Modal}>
+      <form className={styles.Modal_content}>
         {children}
-      </div>
-    </Portal>
-  ) : null;
+        <div className={styles.Modal_content_btns}>
+          <button
+            className={styles.Modal_content_btns_cancel}
+            onClick={handleClose}
+            formMethod="dialog"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={action}
+            type="button"
+            className={styles.Modal_content_btns_action}
+          >
+            OK
+          </button>
+        </div>
+      </form>
+    </dialog>
+  );
 };
 
 export default Modal;

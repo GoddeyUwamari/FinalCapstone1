@@ -36,7 +36,7 @@ export const getReservationsActions = (handleStateUpdate) => [
       <a
         href={`${reservationPagePath}/${activeReservation.reservation_id}/edit`}
       >
-        Edit reservation
+        Edit
       </a>
     ),
     handleVisibility: (activeReservation) =>
@@ -66,7 +66,7 @@ export const getReservationsActions = (handleStateUpdate) => [
         }
         data-reservation-id-cancel={activeReservation.reservation_id}
       >
-        Cancel reservation
+        Cancel
       </span>
     ),
     handleVisibility: (activeReservation) =>

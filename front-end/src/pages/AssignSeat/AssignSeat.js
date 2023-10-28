@@ -20,7 +20,7 @@ const AssignSeat = () => {
   const [tables, setTables] = React.useState(null);
 
   const initialValues = {
-    seat: "",
+    table_id: "",
   };
 
   const handleFormSubmit = async (values) => {
@@ -30,7 +30,7 @@ const AssignSeat = () => {
       if (values) {
         return await updateTableStatus(
           reservation_id,
-          values.seat,
+          values.table_id,
           async (isSuccessfull) => {
             if (isSuccessfull)
               return await updateReservationStatus(
@@ -80,22 +80,22 @@ const AssignSeat = () => {
       >
         {({ values, setFieldValue, handleSubmit, isValid, dirty }) => (
           <form onSubmit={handleSubmit} className={styles.AssignSeat_form}>
-            <label htmlFor="seat" className={styles.AssignSeat_form_label}>
+            <label htmlFor="table_id" className={styles.AssignSeat_form_label}>
               Seat
             </label>
             <select
-              value={values.seat}
+              value={values.table_id}
               className={styles.AssignSeat_form_select}
-              name="seat"
-              id="seat"
-              onChange={(e) => setFieldValue("seat", e.currentTarget.value)}
+              name="table_id"
+              id="table_id"
+              onChange={(e) => setFieldValue("table_id", e.currentTarget.value)}
             >
               <option value="" hidden disabled>
                 Select seat
               </option>
-              {tables?.map((item) => (
-                <option key={uniqueId("seat-options_")} value={item.table_id}>
-                  {item.table_name} - {item.capacity}
+              {tables?.map((table) => (
+                <option key={uniqueId("seat-options_")} value={table.table_id}>
+                  {table.table_name} - {table.capacity}
                 </option>
               ))}
             </select>

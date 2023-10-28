@@ -15,6 +15,11 @@
   outline: none;
 }
 
+.Search_form > button {
+  background-color: transparent;
+  border: none;
+}
+
 .Search_form_icon {
   cursor: pointer;
   width: 22px;

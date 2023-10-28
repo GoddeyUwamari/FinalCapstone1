@@ -16,7 +16,7 @@ const Search = () => {
   const initialState = {
     openModal: false,
     activeReservation: null,
-    search: "",
+    mobile_number: "",
     searchedResult: null,
   };
 
@@ -32,11 +32,11 @@ const Search = () => {
     async (e) => {
       try {
         e.preventDefault();
-        if (state.search !== "") {
+        if (state.mobile_number !== "") {
           const res = await listReservations({
-            mobile_number: state.search,
+            mobile_number: state.mobile_number,
           });
-          handleStateUpdate({ searchedResult: res, search: "" });
+          handleStateUpdate({ searchedResult: res, mobile_number: "" });
         } else {
           toast.error("Enter a valid mobile number");
         }
@@ -44,7 +44,7 @@ const Search = () => {
         toast.error("Something went wrong getting reservations");
       }
     },
-    [state.search]
+    [state.mobile_number]
   );
 
   return (
@@ -53,24 +53,24 @@ const Search = () => {
         <input
           type="tel"
           className={styles.Search_form_input}
-          name="search"
-          id="search"
+          name="mobile_number"
+          id="mobile_number"
           placeholder="222-333-4444"
-          pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
-          value={state.search}
-          onChange={(e) => handleStateUpdate({ search: e.currentTarget.value })}
+          value={state.mobile_number}
+          onChange={(e) =>
+            handleStateUpdate({ mobile_number: e.currentTarget.value })
+          }
         />
 
-        <BiSearch
-          onClick={(e) => handleSearchCallback(e)}
-          className={styles.Search_form_icon}
-        />
+        <button type="submit">
+          <BiSearch className={styles.Search_form_icon} />
+        </button>
       </form>
 
       {state.searchedResult && state.searchedResult.length === 0 ? (
         <div className={styles.Search_notFound}>
           <ImFilesEmpty />
-          <p>No reservation found</p>
+          <p>No reservations found</p>
         </div>
       ) : (
         <div className={styles.Search_result}>

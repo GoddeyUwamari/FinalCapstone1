@@ -126,7 +126,7 @@ export const updateReservation = async (data, id, cb, signal) => {
     signal,
   };
 
-  const res = await fetchJson(`${reservationsApiRoute}/${id}/edit`, options);
+  const res = await fetchJson(`${reservationsApiRoute}/${id}`, options);
 
   return cb(!!res);
 };
@@ -195,11 +195,10 @@ export const fetchTableById = async (table_id, signal) => {
 };
 
 //Finish table
-export const finishTable = async (table_id, reservation_id, cb, signal) => {
+export const finishTable = async (table_id, cb, signal) => {
   const options = {
     method: "DELETE",
     headers,
-    body: JSON.stringify({ data: { reservation_id } }),
     signal,
   };
   const res = await fetchJson(`${tablesApiRoute}/${table_id}/seat`, options);

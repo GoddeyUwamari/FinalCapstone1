@@ -34,50 +34,19 @@ th {
 }
 
 .Table_body_option {
-  position: relative;
-  cursor: pointer;
-}
-
-.Table_body_option_icon {
-  width: 24px;
-  height: 24px;
-}
-
-.Table_body_dropdown {
-  border: 1px solid #c3c3c3;
-  border-radius: 4px;
-  position: absolute;
-  right: 85px;
-  top: 30px;
-  background-color: #fff;
-  width: max-content;
-  display: none;
-  z-index: 10;
-  flex-direction: column;
-}
-
-.Table_body_dropdown > a,
-.Table_body_dropdown > span {
-  width: 100%;
-  padding: 10px;
-  cursor: pointer;
-  transition: all 0.3s linear;
-  z-index: 10;
-  font-size: 12px;
-  font-weight: 500;
-  color: #575757;
-  line-height: 20px;
-  letter-spacing: -0.12px;
-  text-decoration: none;
-}
-
-.Table_body_option:hover .Table_body_dropdown {
   display: flex;
+  gap: 12px;
+  justify-content: center;
 }
 
-.Table_body_dropdown > a:hover,
-.Table_body_dropdown > span:hover {
-  background-color: #c3c3c3;
+.Table_body_option > a,
+.Table_body_option > span {
+  color: #83092e;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 21px;
+  letter-spacing: -0.12px;
+  cursor: pointer;
 }
 
 .Table_empty {

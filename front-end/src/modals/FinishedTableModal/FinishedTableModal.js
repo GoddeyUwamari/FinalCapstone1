@@ -18,7 +18,6 @@ const FinishedTableModal = ({ table_id, show, handleClose, refresh }) => {
       if (table_id && table.reservation_id) {
         return await finishTable(
           table_id,
-          table.reservation_id,
           async (isSuccessfull) => {
             if (isSuccessfull) {
               return await updateReservationStatus(
@@ -73,19 +72,11 @@ const FinishedTableModal = ({ table_id, show, handleClose, refresh }) => {
   }, [table_id, handleFetchTable]);
 
   return (
-    <Modal
-      show={show}
-      handleClose={handleClose}
-      className={styles.FinishedTableModal}
-    >
+    <Modal show={show} handleClose={handleClose} action={handleFinish}>
       <h3 className={styles.FinishedTableModal_title}>Checkout</h3>
       <p className={styles.FinishedTableModal_text}>
         Is this table ready to seat new guests? This cannot be undone.
       </p>
-
-      <button className={styles.FinishedTableModal_btn} onClick={handleFinish}>
-        Ok
-      </button>
     </Modal>
   );
 };

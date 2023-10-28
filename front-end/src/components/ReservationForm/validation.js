@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { date, number, object, string } from "yup";
 import { today } from "../../utils/date-time";
+import { getHourAndMinFromTime } from "../../utils/generics";
 
 export const reservationFormValidationSchema = object({
   first_name: string().required("Please enter your first name"),
@@ -27,13 +28,18 @@ export const reservationFormValidationSchema = object({
       name: "is-Open",
       skipAbsent: true,
       test: (value, ctx) => {
-        if (value < "10:30") {
+        const openingTime = new Date().setHours(10, 30);
+        const closingTime = new Date().setHours(21, 30);
+        const timeObj = getHourAndMinFromTime(value);
+        const time = new Date().setHours(timeObj.hour, timeObj.min);
+
+        if (time < openingTime) {
           return ctx.createError({
             message: "Opening hours starts at 10:30 AM",
           });
         }
 
-        if (value > "21:30") {
+        if (time > closingTime) {
           return ctx.createError({ message: "Reservation closes by 09:30 PM" });
         }
 

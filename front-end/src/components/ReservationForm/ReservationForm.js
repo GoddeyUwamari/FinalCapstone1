@@ -206,7 +206,7 @@ const ReservationForm = ({ type, data }) => {
                 disabled={!isValid || !dirty}
                 className={styles.ReservationForm_form_btns_action}
               >
-                {isEdit ? "Edit" : "Submit"}
+                Submit
               </button>
             </div>
           </form>

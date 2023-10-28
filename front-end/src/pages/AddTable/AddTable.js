@@ -77,7 +77,7 @@ const AddTable = () => {
                 Capacity
               </label>
               <input
-                type="text"
+                type="number"
                 name="capacity"
                 id="capacity"
                 value={values.capacity}
@@ -91,7 +91,9 @@ const AddTable = () => {
             </div>
 
             <div className={styles.AddTable_form_btns}>
-              <button onClick={() => navigate(dashboardPagePath)}>Close</button>
+              <button type="button" onClick={() => navigate(-1)}>
+                Cancel
+              </button>
               <button
                 onClick={handleSubmit}
                 type="submit"
