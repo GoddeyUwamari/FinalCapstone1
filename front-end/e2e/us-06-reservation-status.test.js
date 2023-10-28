@@ -76,9 +76,7 @@ describe("US-06 - Reservation status - E2E", () => {
         fullPage: true,
       });
 
-      const tableData = table[0];
-
-      await seatReservation(reservation.reservation_id, tableData.table_id);
+      await seatReservation(reservation.reservation_id, table.table_id);
 
       await page.reload({ waitUntil: "networkidle0" });
 
@@ -102,8 +100,7 @@ describe("US-06 - Reservation status - E2E", () => {
     });
 
     test("Finishing the table removes the reservation from the list", async () => {
-      const tableData = table[0];
-      await seatReservation(reservation.reservation_id, tableData.table_id);
+      await seatReservation(reservation.reservation_id, table.table_id);
 
       await page.reload({ waitUntil: "networkidle0" });
 
@@ -112,7 +109,7 @@ describe("US-06 - Reservation status - E2E", () => {
         fullPage: true,
       });
 
-      const finishButtonSelector = `[data-table-id-finish="${tableData.table_id}"]`;
+      const finishButtonSelector = `[data-table-id-finish="${table.table_id}"]`;
       await page.waitForSelector(finishButtonSelector);
 
       page.on("dialog", async (dialog) => {

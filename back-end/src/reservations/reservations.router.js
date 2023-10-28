@@ -11,7 +11,7 @@ router.route("/:reservation_id").get(controller.getReservationById);
 router.route("/").post(controller.createReservation);
 
 // Edit reservation
-router.route("/:reservation_id/edit").put(controller.editReservation);
+router.route("/:reservation_id").put(controller.editReservation);
 
 // Delete reservation
 router.route("/:reservation_id").delete(controller.removeReservation);

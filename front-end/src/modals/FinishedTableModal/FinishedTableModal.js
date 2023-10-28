@@ -18,7 +18,6 @@ const FinishedTableModal = ({ table_id, show, handleClose, refresh }) => {
       if (table_id && table.reservation_id) {
         return await finishTable(
           table_id,
-          table.reservation_id,
           async (isSuccessfull) => {
             if (isSuccessfull) {
               return await updateReservationStatus(

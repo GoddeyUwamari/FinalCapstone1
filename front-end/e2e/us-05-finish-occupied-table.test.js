@@ -62,17 +62,15 @@ describe("US-05 - Finish an occupied table - E2E", () => {
         fullPage: true,
       });
 
-      const tableData = table[0];
-
       const containsOccupied = await containsText(
         page,
-        `[data-table-id-status="${tableData.table_id}"]`,
+        `[data-table-id-status="${table.table_id}"]`,
         "occupied"
       );
 
       expect(containsOccupied).toBe(true);
 
-      const finishButtonSelector = `[data-table-id-finish="${tableData.table_id}"]`;
+      const finishButtonSelector = `[data-table-id-finish="${table.table_id}"]`;
       await page.waitForSelector(finishButtonSelector);
 
       page.on("dialog", async (dialog) => {
@@ -95,7 +93,7 @@ describe("US-05 - Finish an occupied table - E2E", () => {
 
       const containsFree = await containsText(
         page,
-        `[data-table-id-status="${tableData.table_id}"]`,
+        `[data-table-id-status="${table.table_id}"]`,
         "free"
       );
 
@@ -111,17 +109,15 @@ describe("US-05 - Finish an occupied table - E2E", () => {
         fullPage: true,
       });
 
-      const tableData = table[0];
-
       const containsOccupied = await containsText(
         page,
-        `[data-table-id-status="${tableData.table_id}"]`,
+        `[data-table-id-status="${table.table_id}"]`,
         "occupied"
       );
 
       expect(containsOccupied).toBe(true);
 
-      const finishButtonSelector = `[data-table-id-finish="${tableData.table_id}"]`;
+      const finishButtonSelector = `[data-table-id-finish="${table.table_id}"]`;
       await page.waitForSelector(finishButtonSelector);
 
       page.on("dialog", async (dialog) => {
@@ -142,7 +138,7 @@ describe("US-05 - Finish an occupied table - E2E", () => {
 
       const containsFree = await containsText(
         page,
-        `[data-table-id-status="${tableData.table_id}"]`,
+        `[data-table-id-status="${table.table_id}"]`,
         "free"
       );
 

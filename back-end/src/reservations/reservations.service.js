@@ -48,7 +48,7 @@ const changeStatus = async (status, reservation_id) => {
   return res;
 };
 
-const updatedReservation = async (reservation_id, reservation) => {
+const updateReservation = async (reservation_id, reservation) => {
   const res = await knex("reservations")
     .whereRaw(`reservation_id=${reservation_id}`)
     .update(reservation)
@@ -68,7 +68,7 @@ module.exports = {
   create,
   getById,
   changeStatus,
-  updatedReservation,
+  updateReservation,
   search,
   remove,
 };
