@@ -1,14 +1,20 @@
+import React from "react";
 import { render, screen } from "@testing-library/react";
 import App from "./App";
-import { BrowserRouter as Router } from "react-router-dom";
 import "@testing-library/jest-dom/extend-expect";
 
 test("renders title", () => {
   render(
-    <Router>
+    <React.Suspense
+      fallback={
+        <div className="page-loader">
+          <p>Loading...</p>
+        </div>
+      }
+    >
       <App />
-    </Router>
+    </React.Suspense>
   );
-  const hotel = screen.getByText(/resortify/i);
-  expect(hotel).toBeInTheDocument();
+  const restaurant = screen.getByText(/capstone/i);
+  expect(restaurant).toBeInTheDocument();
 });
